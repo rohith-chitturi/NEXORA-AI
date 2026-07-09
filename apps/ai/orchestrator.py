@@ -26,15 +26,47 @@ def build_workflow():
         else:
             reasoning = f"Searching catalog for {intent}"
             
-        # Mocking product IDs for now (Next phase: pgvector!)
-        product_ids = ["prod_1", "prod_2", "prod_3"]
+        # Connect to Postgres
+        import os
+        import psycopg2
+        
+        product_names = []
+        try:
+            conn = psycopg2.connect(os.environ.get("DATABASE_URL"))
+            cursor = conn.cursor()
+            
+            # Simple text search for intent in tags or description
+            # In a production environment, this would use pgvector
+            search_term = f"%{intent.split()[0]}%" if intent != "Unknown" else "%"
+            
+            if budget > 0:
+                cursor.execute(
+                    "SELECT name FROM \"Product\" WHERE (name ILIKE %s OR description ILIKE %s) AND \"basePrice\" <= %s LIMIT 3",
+                    (search_term, search_term, budget)
+                )
+            else:
+                cursor.execute(
+                    "SELECT name FROM \"Product\" WHERE name ILIKE %s OR description ILIKE %s LIMIT 3",
+                    (search_term, search_term)
+                )
+                
+            rows = cursor.fetchall()
+            product_names = [row[0] for row in rows]
+            cursor.close()
+            conn.close()
+        except Exception as e:
+            print(f"Database error: {e}")
+            product_names = ["Error fetching products"]
+            
+        if not product_names:
+            product_names = ["No matching products found in our catalog."]
         
         # Formulate an AI response to append to the conversation history
-        assistant_reply = f"I found that you are looking for: {intent}. {reasoning}. I've lined up these products: {', '.join(product_ids)}"
+        assistant_reply = f"I found that you are looking for: {intent}. {reasoning}. I've lined up these products: {', '.join(product_names)}"
         
         return {
             "reasoning": reasoning,
-            "recommended_product_ids": product_ids,
+            "recommended_product_ids": product_names,
             "messages": [AIMessage(content=assistant_reply)]
         }
         
