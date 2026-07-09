@@ -23,21 +23,29 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
     setLoading(true);
-    fetch(`http://localhost:4000/api/products?category=${selectedCategory}`)
+    fetch(`http://localhost:4000/api/products?category=${selectedCategory}&page=${currentPage}&limit=8`)
       .then(res => res.json())
       .then(data => {
-        setProducts(data);
+        setProducts(data.products || []);
+        setTotalPages(data.totalPages || 1);
         setLoading(false);
       })
       .catch(err => {
         console.error("Failed to fetch products", err);
         setLoading(false);
       });
-  }, [selectedCategory]);
+  }, [selectedCategory, currentPage]);
+
+  const handleCategoryClick = (cat: string) => {
+    setSelectedCategory(cat);
+    setCurrentPage(1); // Reset to page 1 on category change
+  };
   
   return (
     <main className="relative pt-24 pb-16 px-6 max-w-7xl mx-auto min-h-screen">
@@ -66,7 +74,7 @@ export default function Home() {
         {CATEGORIES.map((cat, i) => (
           <button 
             key={cat}
-            onClick={() => setSelectedCategory(cat)}
+            onClick={() => handleCategoryClick(cat)}
             className={`px-5 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-colors ${
               selectedCategory === cat
                 ? 'bg-white text-black' 
@@ -135,6 +143,31 @@ export default function Home() {
             </motion.div>
           </Link>
           ))}
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {!loading && totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4 mt-12 border-t border-white/10 pt-8">
+          <Button 
+            variant="outline" 
+            className="bg-transparent border-white/20 text-white hover:bg-white/10"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+          >
+            Previous
+          </Button>
+          <span className="text-gray-400 text-sm font-medium">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button 
+            variant="outline" 
+            className="bg-transparent border-white/20 text-white hover:bg-white/10"
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+          >
+            Next
+          </Button>
         </div>
       )}
     </main>

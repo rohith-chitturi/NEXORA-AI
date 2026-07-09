@@ -20,7 +20,10 @@ app.get('/health', (req, res) => {
 
 app.get('/api/products', async (req, res) => {
   try {
-    const { category } = req.query;
+    const { category, page = '1', limit = '8' } = req.query;
+    
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = parseInt(limit as string, 10);
     
     let whereClause = {};
     if (category && category !== 'All') {
@@ -34,13 +37,17 @@ app.get('/api/products', async (req, res) => {
       };
     }
 
+    const totalProducts = await prisma.product.count({ where: whereClause });
+    const totalPages = Math.ceil(totalProducts / limitNum);
+
     const products = await prisma.product.findMany({
       where: whereClause,
       include: {
         images: true,
         category: true,
       },
-      take: 50,
+      skip: (pageNum - 1) * limitNum,
+      take: limitNum,
     });
     
     // Map data to match frontend format expectations
@@ -53,7 +60,12 @@ app.get('/api/products', async (req, res) => {
       image: p.images.find(img => img.isDefault)?.url || p.images[0]?.url || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e"
     }));
     
-    res.json(formattedProducts);
+    res.json({
+      products: formattedProducts,
+      currentPage: pageNum,
+      totalPages,
+      totalProducts
+    });
   } catch (error) {
     console.error("Error fetching products:", error);
     res.status(500).json({ error: "Internal server error" });
