@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Star, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/store/useCartStore';
+import Link from 'next/link';
 
 const CATEGORIES = ["All", "Electronics", "Furniture", "Clothing", "Fitness", "Home"];
 
@@ -82,13 +83,17 @@ export default function Home() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product, i) => (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
+          <Link 
             key={product.id}
+            href={`/product/${product.id}`}
             className="group glass-panel rounded-2xl overflow-hidden flex flex-col hover:border-purple-500/50 transition-all hover:shadow-2xl hover:shadow-purple-500/10 cursor-pointer"
           >
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+              className="h-full flex flex-col"
+            >
             <div className={`w-full h-48 relative flex items-center justify-center overflow-hidden`}>
               <img 
                 src={product.image} 
@@ -122,7 +127,8 @@ export default function Home() {
                 ${product.price.toFixed(2)}
               </div>
             </div>
-          </motion.div>
+            </motion.div>
+          </Link>
           ))}
         </div>
       )}

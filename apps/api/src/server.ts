@@ -45,6 +45,39 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
+app.get('/api/products/:id', async (req, res) => {
+  try {
+    const p = await prisma.product.findUnique({
+      where: { id: req.params.id },
+      include: {
+        images: true,
+        category: true,
+      }
+    });
+    
+    if (!p) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+    
+    const formattedProduct = {
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      price: parseFloat(p.basePrice.toString()),
+      category: p.category.name,
+      rating: 4.5,
+      image: p.images.find(img => img.isDefault)?.url || p.images[0]?.url || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e",
+      images: p.images.map(img => img.url),
+      features: p.features
+    };
+    
+    res.json(formattedProduct);
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`NEXORA API running on port ${port}`);
 });
