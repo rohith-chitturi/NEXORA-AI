@@ -87,7 +87,7 @@ function ChatInterface() {
     setLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/chat?query=${encodeURIComponent(userMsg)}`, {
+      const response = await fetch(`http://localhost:8001/api/v1/chat?query=${encodeURIComponent(userMsg)}`, {
         method: 'POST'
       });
       const data = await response.json();
