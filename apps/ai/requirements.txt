@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pydantic
+langgraph
+langchain-openai
+langchain-core
+sentence-transformers
+python-dotenv
+redis

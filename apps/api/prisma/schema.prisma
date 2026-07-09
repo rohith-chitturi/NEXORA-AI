@@ -1,0 +1,263 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  VENDOR
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  passwordHash   String?
+  authProvider   String?   // 'local', 'google', 'github'
+  firstName      String?
+  lastName       String?
+  phone          String?
+  role           Role      @default(CUSTOMER)
+  
+  // AI Memory / Shopping Preferences (Stored as JSON)
+  aiPreferences  Json?     // e.g. { "favoriteBrands": ["Nike"], "budget": "premium", "sizes": {"shoe": 10} }
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  addresses      Address[]
+  orders         Order[]
+  reviews        ProductReview[]
+  wishlist       Wishlist[]
+  cart           Cart?
+  chatHistory    ChatHistory[]
+  
+  // If user is a vendor
+  vendorProfile  Vendor?
+}
+
+model Vendor {
+  id            String    @id @default(uuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id])
+  storeName     String    @unique
+  description   String?
+  logoUrl       String?
+  rating        Float     @default(0.0)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  products      Product[]
+}
+
+model Category {
+  id            String     @id @default(uuid())
+  name          String
+  slug          String     @unique
+  description   String?
+  parentId      String?
+  parent        Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children      Category[] @relation("CategoryHierarchy")
+  products      Product[]
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Product {
+  id              String    @id @default(uuid())
+  name            String
+  slug            String    @unique
+  description     String
+  basePrice       Decimal   @db.Decimal(10, 2)
+  discountPrice   Decimal?  @db.Decimal(10, 2)
+  stock           Int       @default(0)
+  
+  // Media
+  videoUrl        String?
+  arModelUrl      String?   // For AR Product Preview
+  
+  // Foreign Keys
+  vendorId        String
+  vendor          Vendor    @relation(fields: [vendorId], references: [id])
+  categoryId      String
+  category        Category  @relation(fields: [categoryId], references: [id])
+
+  // AI & Search Metadata
+  tags            String[]
+  aiSummary       String?   // Pre-generated summary of what this product is best for
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  images          ProductImage[]
+  variants        ProductVariant[]
+  reviews         ProductReview[]
+  orderItems      OrderItem[]
+  wishlists       Wishlist[]
+  cartItems       CartItem[]
+}
+
+model ProductImage {
+  id          String   @id @default(uuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url         String
+  altText     String?
+  isDefault   Boolean  @default(false)
+}
+
+model ProductVariant {
+  id          String   @id @default(uuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku         String   @unique
+  name        String   // e.g., "Red / Large"
+  priceOffset Decimal  @default(0.0) @db.Decimal(10, 2)
+  stock       Int      @default(0)
+  attributes  Json     // e.g., { "color": "red", "size": "L" }
+
+  orderItems  OrderItem[]
+  cartItems   CartItem[]
+}
+
+model Address {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName    String
+  phone       String
+  street      String
+  city        String
+  state       String
+  country     String
+  zipCode     String
+  isDefault   Boolean  @default(false)
+  
+  orders      Order[]
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  status          OrderStatus @default(PENDING)
+  
+  totalAmount     Decimal     @db.Decimal(10, 2)
+  discountAmount  Decimal     @default(0) @db.Decimal(10, 2)
+  shippingAmount  Decimal     @default(0) @db.Decimal(10, 2)
+  finalAmount     Decimal     @db.Decimal(10, 2)
+  
+  shippingAddressId String
+  shippingAddress   Address   @relation(fields: [shippingAddressId], references: [id])
+  
+  // Tracking & Security
+  trackingNumber  String?
+  deliveryOtp     String?   // Used for secure delivery
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  items           OrderItem[]
+}
+
+model OrderItem {
+  id              String          @id @default(uuid())
+  orderId         String
+  order           Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product         @relation(fields: [productId], references: [id])
+  variantId       String?
+  variant         ProductVariant? @relation(fields: [variantId], references: [id])
+  
+  quantity        Int
+  unitPrice       Decimal         @db.Decimal(10, 2)
+}
+
+model Cart {
+  id          String     @id @default(uuid())
+  userId      String     @unique
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt   DateTime   @updatedAt
+  
+  items       CartItem[]
+}
+
+model CartItem {
+  id          String          @id @default(uuid())
+  cartId      String
+  cart        Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product         @relation(fields: [productId], references: [id])
+  variantId   String?
+  variant     ProductVariant? @relation(fields: [variantId], references: [id])
+  quantity    Int             @default(1)
+}
+
+model ProductReview {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  rating      Int      // 1 to 5
+  title       String?
+  comment     String?
+  createdAt   DateTime @default(now())
+}
+
+model Wishlist {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
+model Coupon {
+  id            String       @id @default(uuid())
+  code          String       @unique
+  description   String?
+  discountType  DiscountType
+  discountValue Decimal      @db.Decimal(10, 2)
+  minOrderValue Decimal?     @db.Decimal(10, 2)
+  maxDiscount   Decimal?     @db.Decimal(10, 2)
+  validFrom     DateTime
+  validUntil    DateTime
+  isActive      Boolean      @default(true)
+  usageLimit    Int?         // Total number of times coupon can be used overall
+  usedCount     Int          @default(0)
+}
+
+model ChatHistory {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agentType   String   // 'SHOPPING', 'COMPARISON', 'DEAL_FINDER', etc.
+  message     String   // Usually a serialized JSON containing prompt/response context
+  createdAt   DateTime @default(now())
+}
