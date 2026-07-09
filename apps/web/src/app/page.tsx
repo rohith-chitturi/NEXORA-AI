@@ -7,14 +7,14 @@ import { Button } from '@/components/ui/button';
 const CATEGORIES = ["All", "Electronics", "Furniture", "Clothing", "Fitness", "Home"];
 
 const DUMMY_PRODUCTS = [
-  { id: 1, name: "Ergonomic Office Chair X1", price: 299.99, category: "Furniture", rating: 4.8, image: "bg-blue-900/20" },
-  { id: 2, name: "Noise Cancelling Headphones", price: 349.00, category: "Electronics", rating: 4.9, image: "bg-purple-900/20" },
-  { id: 3, name: "Minimalist Mechanical Keyboard", price: 129.50, category: "Electronics", rating: 4.7, image: "bg-zinc-800" },
-  { id: 4, name: "Adjustable Standing Desk", price: 499.00, category: "Furniture", rating: 4.6, image: "bg-amber-900/20" },
-  { id: 5, name: "Smart Fitness Watch", price: 199.99, category: "Fitness", rating: 4.5, image: "bg-emerald-900/20" },
-  { id: 6, name: "Premium Cotton T-Shirt", price: 29.00, category: "Clothing", rating: 4.4, image: "bg-rose-900/20" },
-  { id: 7, name: "Ultra-Wide Monitor 34\"", price: 799.00, category: "Electronics", rating: 4.9, image: "bg-indigo-900/20" },
-  { id: 8, name: "Aromatherapy Diffuser", price: 45.00, category: "Home", rating: 4.2, image: "bg-teal-900/20" },
+  { id: 1, name: "Ergonomic Office Chair X1", price: 299.99, category: "Furniture", rating: 4.8, image: "https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?auto=format&fit=crop&w=800&q=80" },
+  { id: 2, name: "Noise Cancelling Headphones", price: 349.00, category: "Electronics", rating: 4.9, image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80" },
+  { id: 3, name: "Minimalist Mechanical Keyboard", price: 129.50, category: "Electronics", rating: 4.7, image: "https://images.unsplash.com/photo-1595225476474-87563907a212?auto=format&fit=crop&w=800&q=80" },
+  { id: 4, name: "Adjustable Standing Desk", price: 499.00, category: "Furniture", rating: 4.6, image: "https://images.unsplash.com/photo-1593062096033-9a26b09da705?auto=format&fit=crop&w=800&q=80" },
+  { id: 5, name: "Smart Fitness Watch", price: 199.99, category: "Fitness", rating: 4.5, image: "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&w=800&q=80" },
+  { id: 6, name: "Premium Cotton T-Shirt", price: 29.00, category: "Clothing", rating: 4.4, image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=80" },
+  { id: 7, name: "Ultra-Wide Monitor 34\"", price: 799.00, category: "Electronics", rating: 4.9, image: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=800&q=80" },
+  { id: 8, name: "Aromatherapy Diffuser", price: 45.00, category: "Home", rating: 4.2, image: "https://images.unsplash.com/photo-1602928321679-560bb453f190?auto=format&fit=crop&w=800&q=80" },
 ];
 
 export default function Home() {
@@ -66,11 +66,12 @@ export default function Home() {
             key={product.id}
             className="group glass-panel rounded-2xl overflow-hidden flex flex-col hover:border-purple-500/50 transition-all hover:shadow-2xl hover:shadow-purple-500/10 cursor-pointer"
           >
-            <div className={`w-full h-48 ${product.image} relative flex items-center justify-center`}>
-              {/* Dummy Image Placeholder */}
-              <div className="w-20 h-20 rounded-full bg-black/40 shadow-inner flex items-center justify-center text-white/20">
-                Image
-              </div>
+            <div className={`w-full h-48 relative flex items-center justify-center overflow-hidden`}>
+              <img 
+                src={product.image} 
+                alt={product.name} 
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+              />
               
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
                 <Button className="rounded-full bg-white text-black hover:bg-gray-200">
