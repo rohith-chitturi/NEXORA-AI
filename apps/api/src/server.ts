@@ -20,12 +20,27 @@ app.get('/health', (req, res) => {
 
 app.get('/api/products', async (req, res) => {
   try {
+    const { category } = req.query;
+    
+    let whereClause = {};
+    if (category && category !== 'All') {
+      whereClause = {
+        category: {
+          name: {
+            equals: category as string,
+            mode: 'insensitive'
+          }
+        }
+      };
+    }
+
     const products = await prisma.product.findMany({
+      where: whereClause,
       include: {
         images: true,
         category: true,
       },
-      take: 20,
+      take: 50,
     });
     
     // Map data to match frontend format expectations

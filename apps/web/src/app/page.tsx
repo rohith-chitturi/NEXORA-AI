@@ -22,10 +22,12 @@ type Product = {
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/products')
+    setLoading(true);
+    fetch(`http://localhost:4000/api/products?category=${selectedCategory}`)
       .then(res => res.json())
       .then(data => {
         setProducts(data);
@@ -35,7 +37,7 @@ export default function Home() {
         console.error("Failed to fetch products", err);
         setLoading(false);
       });
-  }, []);
+  }, [selectedCategory]);
   
   return (
     <main className="relative pt-24 pb-16 px-6 max-w-7xl mx-auto min-h-screen">
@@ -64,8 +66,9 @@ export default function Home() {
         {CATEGORIES.map((cat, i) => (
           <button 
             key={cat}
+            onClick={() => setSelectedCategory(cat)}
             className={`px-5 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-colors ${
-              i === 0 
+              selectedCategory === cat
                 ? 'bg-white text-black' 
                 : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/5'
             }`}
