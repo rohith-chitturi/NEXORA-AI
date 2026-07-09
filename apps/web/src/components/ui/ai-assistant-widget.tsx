@@ -2,18 +2,20 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, ArrowRight, Sparkles, X } from 'lucide-react';
+import { Bot, ArrowRight, Sparkles, X, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@clerk/nextjs';
+import { useCartStore } from '@/store/useCartStore';
 
 export function AIAssistantWidget() {
   const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<any[]>([
     { role: 'assistant', text: 'Hello! I am your NEXORA AI. Need help finding a product?' }
   ]);
   const [loading, setLoading] = useState(false);
+  const addItem = useCartStore((state) => state.addItem);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -36,8 +38,8 @@ export function AIAssistantWidget() {
       });
       const data = await response.json();
       
-      const assistantText = `I found that you are looking for: ${data.intent}. ${data.reasoning}. I've lined up these products: ${data.products.join(", ")}`;
-      setMessages(prev => [...prev, { role: 'assistant', text: assistantText }]);
+      const assistantText = `I found that you are looking for: ${data.intent}. ${data.reasoning}.`;
+      setMessages(prev => [...prev, { role: 'assistant', text: assistantText, products: data.products }]);
     } catch (err) {
       setMessages(prev => [...prev, { role: 'assistant', text: 'Sorry, the AI Engine is currently offline or unreachable.' }]);
     } finally {
@@ -97,6 +99,31 @@ export function AIAssistantWidget() {
                     </div>
                     <div className={`rounded-2xl p-3 text-sm ${msg.role === 'user' ? 'bg-blue-600/20 border border-blue-500/30 rounded-tr-sm text-white' : 'bg-white/5 border border-white/10 rounded-tl-sm text-gray-200'}`}>
                       <p>{msg.text}</p>
+                      
+                      {/* Product Cards Grid inside chat */}
+                      {msg.products && msg.products.length > 0 && (
+                        <div className="mt-3 flex flex-col gap-2">
+                          {msg.products.map((product: any, idx: number) => (
+                            <div key={idx} className="bg-black/40 border border-white/10 rounded-xl p-2 flex gap-3 hover:border-purple-500/30 transition-colors">
+                              <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0">
+                                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                              </div>
+                              <div className="flex flex-col justify-between flex-1 min-w-0">
+                                <div>
+                                  <h4 className="text-xs font-semibold text-white truncate">{product.name}</h4>
+                                  <p className="text-[10px] text-purple-400 font-bold mt-0.5">${product.price.toFixed(2)}</p>
+                                </div>
+                                <button 
+                                  onClick={() => addItem({ ...product, quantity: 1 })}
+                                  className="text-[10px] bg-white/10 hover:bg-white/20 text-white rounded px-2 py-1 flex items-center justify-center gap-1 mt-1 transition-colors w-fit"
+                                >
+                                  <ShoppingCart className="w-3 h-3" /> Add
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
