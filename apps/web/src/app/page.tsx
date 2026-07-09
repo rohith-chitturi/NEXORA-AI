@@ -6,19 +6,33 @@ import { Button } from '@/components/ui/button';
 
 const CATEGORIES = ["All", "Electronics", "Furniture", "Clothing", "Fitness", "Home"];
 
-const DUMMY_PRODUCTS = [
-  { id: 1, name: "Ergonomic Office Chair X1", price: 299.99, category: "Furniture", rating: 4.8, image: "https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?auto=format&fit=crop&w=800&q=80" },
-  { id: 2, name: "Noise Cancelling Headphones", price: 349.00, category: "Electronics", rating: 4.9, image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80" },
-  { id: 3, name: "Minimalist Mechanical Keyboard", price: 129.50, category: "Electronics", rating: 4.7, image: "https://images.unsplash.com/photo-1595225476474-87563907a212?auto=format&fit=crop&w=800&q=80" },
-  { id: 4, name: "Adjustable Standing Desk", price: 499.00, category: "Furniture", rating: 4.6, image: "https://images.unsplash.com/photo-1593062096033-9a26b09da705?auto=format&fit=crop&w=800&q=80" },
-  { id: 5, name: "Smart Fitness Watch", price: 199.99, category: "Fitness", rating: 4.5, image: "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&w=800&q=80" },
-  { id: 6, name: "Premium Cotton T-Shirt", price: 29.00, category: "Clothing", rating: 4.4, image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=80" },
-  { id: 7, name: "Ultra-Wide Monitor 34\"", price: 799.00, category: "Electronics", rating: 4.9, image: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=800&q=80" },
-  { id: 8, name: "Aromatherapy Diffuser", price: 45.00, category: "Home", rating: 4.2, image: "https://images.unsplash.com/photo-1602928321679-560bb453f190?auto=format&fit=crop&w=800&q=80" },
-];
+import { useEffect, useState } from 'react';
+
+type Product = {
+  id: string;
+  name: string;
+  price: number;
+  category: string;
+  rating: number;
+  image: string;
+};
 
 export default function Home() {
-  return (
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('http://localhost:4000/api/products')
+      .then(res => res.json())
+      .then(data => {
+        setProducts(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to fetch products", err);
+        setLoading(false);
+      });
+  }, []);
     <main className="relative pt-24 pb-16 px-6 max-w-7xl mx-auto min-h-screen">
       {/* Featured Hero Banner */}
       <motion.div 
@@ -57,8 +71,15 @@ export default function Home() {
       </div>
 
       {/* Product Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {DUMMY_PRODUCTS.map((product, i) => (
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="glass-panel rounded-2xl h-72 animate-pulse bg-white/5" />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {products.map((product, i) => (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -94,8 +115,9 @@ export default function Home() {
               </div>
             </div>
           </motion.div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </main>
   );
 }
