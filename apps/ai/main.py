@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from dotenv import load_dotenv
+from langchain_core.messages import HumanMessage
 from orchestrator import build_workflow
-from agents.shopping_agent import ShoppingAgentState
 
 load_dotenv()
 
@@ -19,21 +20,26 @@ app.add_middleware(
 # Compile the graph once on startup
 workflow_app = build_workflow()
 
+class ChatRequest(BaseModel):
+    query: str
+    user_id: str
+
 @app.get("/health")
 def health_check():
     return {"status": "ok", "service": "nexora-ai-engine"}
 
 @app.post("/api/v1/chat")
-def chat_with_agent(query: str):
-    # Initialize state
-    initial_state = ShoppingAgentState(user_query=query)
+def chat_with_agent(request: ChatRequest):
+    # Pass user_id as the thread_id for LangGraph MemorySaver
+    config = {"configurable": {"thread_id": request.user_id}}
     
-    # Run the graph
-    result = workflow_app.invoke(initial_state)
+    # Send the new HumanMessage to the state
+    # LangGraph will automatically append this to the history via the Annotated reducer
+    result = workflow_app.invoke({"messages": [HumanMessage(content=request.query)]}, config=config)
     
     return {
-        "intent": result["extracted_intent"],
-        "budget": result["budget"],
-        "reasoning": result["reasoning"],
-        "products": result["recommended_product_ids"]
+        "intent": result.get("extracted_intent"),
+        "budget": result.get("budget"),
+        "reasoning": result.get("reasoning"),
+        "products": result.get("recommended_product_ids")
     }

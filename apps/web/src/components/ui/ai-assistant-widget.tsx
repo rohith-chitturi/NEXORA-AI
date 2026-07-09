@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, ArrowRight, ShoppingBag, Sparkles, X, MessageSquareText } from 'lucide-react';
+import { Bot, ArrowRight, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useUser } from '@clerk/nextjs';
 
 export function AIAssistantWidget() {
+  const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([
@@ -22,8 +24,15 @@ export function AIAssistantWidget() {
     setLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:8001/api/v1/chat?query=${encodeURIComponent(userMsg)}`, {
-        method: 'POST'
+      const response = await fetch(`http://localhost:8001/api/v1/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          query: userMsg,
+          user_id: user?.id || 'anonymous_user'
+        })
       });
       const data = await response.json();
       

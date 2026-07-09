@@ -1,4 +1,6 @@
 from langgraph.graph import StateGraph, START, END
+from langgraph.checkpoint.memory import MemorySaver
+from langchain_core.messages import AIMessage
 from agents.shopping_agent import ShoppingAgentState, ShoppingAgent
 
 def build_workflow():
@@ -7,21 +9,34 @@ def build_workflow():
     # Initialize our agent classes
     shopping_agent = ShoppingAgent()
     
+    # Initialize memory saver
+    memory = MemorySaver()
+    
     # Define Nodes
     def analyze_intent(state: ShoppingAgentState):
         return shopping_agent.process(state)
         
     def perform_search(state: ShoppingAgentState):
-        # In the future, this node will query Postgres/pgvector or Elasticsearch
-        # using the state.extracted_intent and state.budget
-        if state.budget > 0:
-            state.reasoning = f"Searching catalog for {state.extracted_intent} under ${state.budget}"
+        intent = state.get("extracted_intent", "Unknown")
+        budget = state.get("budget", 0.0)
+        
+        reasoning = ""
+        if budget > 0:
+            reasoning = f"Searching catalog for {intent} under ${budget}"
         else:
-            state.reasoning = f"Searching catalog for {state.extracted_intent}"
+            reasoning = f"Searching catalog for {intent}"
             
-        # Mocking product IDs for now
-        state.recommended_product_ids = ["prod_1", "prod_2", "prod_3"]
-        return state
+        # Mocking product IDs for now (Next phase: pgvector!)
+        product_ids = ["prod_1", "prod_2", "prod_3"]
+        
+        # Formulate an AI response to append to the conversation history
+        assistant_reply = f"I found that you are looking for: {intent}. {reasoning}. I've lined up these products: {', '.join(product_ids)}"
+        
+        return {
+            "reasoning": reasoning,
+            "recommended_product_ids": product_ids,
+            "messages": [AIMessage(content=assistant_reply)]
+        }
         
     workflow.add_node("intent_analysis", analyze_intent)
     workflow.add_node("catalog_search", perform_search)
@@ -30,4 +45,5 @@ def build_workflow():
     workflow.add_edge("intent_analysis", "catalog_search")
     workflow.add_edge("catalog_search", END)
     
-    return workflow.compile()
+    # Compile with memory checking
+    return workflow.compile(checkpointer=memory)
