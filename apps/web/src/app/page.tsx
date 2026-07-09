@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { Bot, Sparkles, Command, ArrowRight, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
+import { useState } from 'react';
 export default function Home() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[var(--background)]">
@@ -72,11 +72,11 @@ export default function Home() {
 }
 
 function ChatInterface() {
-  const [input, setInput] = import('react').then(mod => mod.useState(''));
-  const [messages, setMessages] = import('react').then(mod => mod.useState([
+  const [input, setInput] = useState('');
+  const [messages, setMessages] = useState([
     { role: 'assistant', text: 'Hello! I am your NEXORA Personal Shopping Agent. What are we looking for today?' }
-  ]));
-  const [loading, setLoading] = import('react').then(mod => mod.useState(false));
+  ]);
+  const [loading, setLoading] = useState(false);
 
   const handleSend = async () => {
     if (!input.trim()) return;
