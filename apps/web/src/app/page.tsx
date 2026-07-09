@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, Star, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useCartStore } from '@/store/useCartStore';
 
 const CATEGORIES = ["All", "Electronics", "Furniture", "Clothing", "Fitness", "Home"];
 
@@ -20,6 +21,7 @@ type Product = {
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
     fetch('http://localhost:4000/api/products')
@@ -95,7 +97,13 @@ export default function Home() {
               />
               
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
-                <Button className="rounded-full bg-white text-black hover:bg-gray-200">
+                <Button 
+                  className="rounded-full bg-white text-black hover:bg-gray-200"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    addItem({ id: product.id, name: product.name, price: product.price, image: product.image, quantity: 1 });
+                  }}
+                >
                   <ShoppingCart className="w-4 h-4 mr-2" /> Add to Cart
                 </Button>
               </div>

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Sparkles, Search, ShoppingCart } from "lucide-react";
 import "./globals.css";
 import { AIAssistantWidget } from "@/components/ui/ai-assistant-widget";
+import { CartIcon } from "@/components/ui/cart-icon";
 import { ClerkProvider, SignInButton, UserButton } from '@clerk/nextjs'
 import { auth } from '@clerk/nextjs/server'
 
@@ -66,10 +67,7 @@ export default async function RootLayout({
                   )}
                 </div>
                 
-                <a href="#" className="hover:text-white transition-colors flex flex-col items-center gap-1">
-                  <ShoppingCart className="w-4 h-4" />
-                  <span className="text-[10px]">Cart</span>
-                </a>
+                <CartIcon />
               </div>
             </div>
           </nav>
