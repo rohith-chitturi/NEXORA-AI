@@ -34,8 +34,8 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <main className="relative pt-32 pb-16 px-6 max-w-7xl mx-auto">
-        <div className="flex flex-col items-center text-center mt-20">
+      <main className="relative pt-32 pb-16 px-6 max-w-7xl mx-auto min-h-screen flex flex-col justify-between">
+        <div className="flex flex-col items-center text-center mt-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -63,84 +63,115 @@ export default function Home() {
           >
             NEXORA is a next-generation AI commerce platform. Tell the AI what you need, and it searches, compares, and purchases for you.
           </motion.p>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center gap-4"
-          >
-            <Button size="lg" className="rounded-full h-12 px-8 bg-white text-black hover:bg-gray-200 text-base group">
-              Try NEXORA AI
-              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <Button size="lg" variant="outline" className="rounded-full h-12 px-8 border-white/10 bg-transparent hover:bg-white/5 text-base">
-              <Command className="w-4 h-4 mr-2 text-gray-400" />
-              Press K to explore
-            </Button>
-          </motion.div>
         </div>
 
-        {/* Floating Mockup Interface */}
-        <motion.div 
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.5 }}
-          className="mt-20 w-full max-w-5xl mx-auto"
-        >
-          <div className="glass-panel rounded-2xl overflow-hidden">
-            <div className="h-12 border-b border-white/10 flex items-center px-4 bg-white/5">
-              <div className="flex gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50" />
-                <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50" />
-              </div>
-              <div className="mx-auto flex items-center gap-2 text-xs text-gray-500 bg-black/40 px-3 py-1 rounded-md">
-                <ShoppingBag className="w-3 h-3" />
-                nexora.ai / assistant
-              </div>
-            </div>
-            
-            <div className="p-8 h-[400px] flex flex-col gap-6 bg-black/20">
-              {/* Mock Chat bubbles */}
-              <div className="flex gap-4 max-w-2xl">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center shrink-0">
-                  <Bot className="w-4 h-4 text-white" />
-                </div>
-                <div className="bg-white/5 border border-white/10 rounded-2xl rounded-tl-sm p-4 text-sm text-gray-300">
-                  <p>Hello! I am your NEXORA Personal Shopping Agent. What are we looking for today?</p>
-                </div>
-              </div>
-
-              <div className="flex gap-4 max-w-2xl self-end flex-row-reverse">
-                <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center shrink-0">
-                  <span className="text-xs">You</span>
-                </div>
-                <div className="bg-blue-600/20 border border-blue-500/30 rounded-2xl rounded-tr-sm p-4 text-sm text-gray-200">
-                  <p>"I need an ergonomic office chair between $200 and $500 for back pain."</p>
-                </div>
-              </div>
-              
-              <div className="flex gap-4 max-w-3xl">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center shrink-0">
-                  <Bot className="w-4 h-4 text-white" />
-                </div>
-                <div className="bg-white/5 border border-white/10 rounded-2xl rounded-tl-sm p-4 text-sm text-gray-300 w-full space-y-4">
-                  <div className="flex items-center gap-2 text-purple-400">
-                    <Sparkles className="w-4 h-4" />
-                    <span className="font-medium text-xs uppercase tracking-wider">Analyzing requirements & Scanning catalog</span>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-2 bg-white/10 rounded-full w-3/4 animate-pulse" />
-                    <div className="h-2 bg-white/10 rounded-full w-1/2 animate-pulse" />
-                    <div className="h-2 bg-white/10 rounded-full w-5/6 animate-pulse" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+        <ChatInterface />
       </main>
     </div>
+  );
+}
+
+function ChatInterface() {
+  const [input, setInput] = import('react').then(mod => mod.useState(''));
+  const [messages, setMessages] = import('react').then(mod => mod.useState([
+    { role: 'assistant', text: 'Hello! I am your NEXORA Personal Shopping Agent. What are we looking for today?' }
+  ]));
+  const [loading, setLoading] = import('react').then(mod => mod.useState(false));
+
+  const handleSend = async () => {
+    if (!input.trim()) return;
+    
+    const userMsg = input.trim();
+    setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
+    setInput('');
+    setLoading(true);
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/v1/chat?query=${encodeURIComponent(userMsg)}`, {
+        method: 'POST'
+      });
+      const data = await response.json();
+      
+      const assistantText = `I found that you are looking for: ${data.intent}. ${data.reasoning}. I've lined up these products: ${data.products.join(", ")}`;
+      setMessages(prev => [...prev, { role: 'assistant', text: assistantText }]);
+    } catch (err) {
+      setMessages(prev => [...prev, { role: 'assistant', text: 'Sorry, the AI Engine is currently offline or unreachable.' }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, delay: 0.5 }}
+      className="mt-10 w-full max-w-3xl mx-auto"
+    >
+      <div className="glass-panel rounded-2xl overflow-hidden flex flex-col shadow-2xl">
+        <div className="h-12 border-b border-white/10 flex items-center px-4 bg-white/5 shrink-0">
+          <div className="flex gap-2">
+            <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50" />
+            <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50" />
+            <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50" />
+          </div>
+          <div className="mx-auto flex items-center gap-2 text-xs text-gray-500 bg-black/40 px-3 py-1 rounded-md">
+            <ShoppingBag className="w-3 h-3" />
+            nexora.ai / assistant
+          </div>
+        </div>
+        
+        <div className="p-6 h-[400px] flex flex-col gap-6 bg-black/40 overflow-y-auto">
+          {messages.map((msg, i) => (
+            <div key={i} className={`flex gap-4 max-w-2xl ${msg.role === 'user' ? 'self-end flex-row-reverse' : ''}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'user' ? 'bg-zinc-800' : 'bg-gradient-to-tr from-purple-500 to-blue-500'}`}>
+                {msg.role === 'user' ? <span className="text-xs">You</span> : <Bot className="w-4 h-4 text-white" />}
+              </div>
+              <div className={`border rounded-2xl p-4 text-sm ${msg.role === 'user' ? 'bg-blue-600/20 border-blue-500/30 rounded-tr-sm text-gray-200' : 'bg-white/5 border-white/10 rounded-tl-sm text-gray-300'}`}>
+                <p>{msg.text}</p>
+              </div>
+            </div>
+          ))}
+
+          {loading && (
+            <div className="flex gap-4 max-w-3xl">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center shrink-0">
+                <Bot className="w-4 h-4 text-white" />
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-2xl rounded-tl-sm p-4 text-sm text-gray-300 w-full space-y-4">
+                <div className="flex items-center gap-2 text-purple-400">
+                  <Sparkles className="w-4 h-4" />
+                  <span className="font-medium text-xs uppercase tracking-wider">Analyzing requirements & Scanning catalog</span>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-2 bg-white/10 rounded-full w-3/4 animate-pulse" />
+                  <div className="h-2 bg-white/10 rounded-full w-1/2 animate-pulse" />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="p-4 bg-white/5 border-t border-white/10">
+          <div className="relative flex items-center">
+            <input 
+              type="text" 
+              placeholder="Ask NEXORA anything... (e.g. Find me a mechanical keyboard under $100)" 
+              className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 outline-none focus:border-purple-500/50 transition-colors"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSend();
+                }
+              }}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+            />
+            <Button size="icon" onClick={handleSend} className="absolute right-2 rounded-lg bg-white/10 hover:bg-white/20 text-white w-8 h-8">
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
   );
 }
