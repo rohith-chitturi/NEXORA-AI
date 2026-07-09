@@ -1,177 +1,100 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Bot, Sparkles, Command, ArrowRight, ShoppingBag } from 'lucide-react';
+import { ArrowRight, Star, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+
+const CATEGORIES = ["All", "Electronics", "Furniture", "Clothing", "Fitness", "Home"];
+
+const DUMMY_PRODUCTS = [
+  { id: 1, name: "Ergonomic Office Chair X1", price: 299.99, category: "Furniture", rating: 4.8, image: "bg-blue-900/20" },
+  { id: 2, name: "Noise Cancelling Headphones", price: 349.00, category: "Electronics", rating: 4.9, image: "bg-purple-900/20" },
+  { id: 3, name: "Minimalist Mechanical Keyboard", price: 129.50, category: "Electronics", rating: 4.7, image: "bg-zinc-800" },
+  { id: 4, name: "Adjustable Standing Desk", price: 499.00, category: "Furniture", rating: 4.6, image: "bg-amber-900/20" },
+  { id: 5, name: "Smart Fitness Watch", price: 199.99, category: "Fitness", rating: 4.5, image: "bg-emerald-900/20" },
+  { id: 6, name: "Premium Cotton T-Shirt", price: 29.00, category: "Clothing", rating: 4.4, image: "bg-rose-900/20" },
+  { id: 7, name: "Ultra-Wide Monitor 34\"", price: 799.00, category: "Electronics", rating: 4.9, image: "bg-indigo-900/20" },
+  { id: 8, name: "Aromatherapy Diffuser", price: 45.00, category: "Home", rating: 4.2, image: "bg-teal-900/20" },
+];
+
 export default function Home() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[var(--background)]">
-      {/* Abstract Background Elements */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px]" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px]" />
-
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full border-b border-white/5 bg-black/20 backdrop-blur-md z-50">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-purple-400" />
-            <span className="font-bold text-lg tracking-tight">NEXORA</span>
-          </div>
-          <div className="hidden md:flex items-center gap-8 text-sm text-gray-400">
-            <a href="#" className="hover:text-white transition-colors">Platform</a>
-            <a href="#" className="hover:text-white transition-colors">Agents</a>
-            <a href="#" className="hover:text-white transition-colors">Pricing</a>
-            <a href="#" className="hover:text-white transition-colors">Changelog</a>
-          </div>
-          <div className="flex items-center gap-4">
-            <button className="text-sm font-medium hover:text-gray-300 transition-colors">Log in</button>
-            <Button className="rounded-full bg-white text-black hover:bg-gray-200">
-              Get Started
-            </Button>
-          </div>
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <main className="relative pt-32 pb-16 px-6 max-w-7xl mx-auto min-h-screen flex flex-col justify-between">
-        <div className="flex flex-col items-center text-center mt-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-sm text-gray-300 mb-8"
-          >
-            <Bot className="w-4 h-4 text-purple-400" />
-            <span>Meet your autonomous AI Shopping Agent</span>
-          </motion.div>
-
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-6xl md:text-8xl font-bold tracking-tighter mb-6 max-w-4xl"
-          >
-            Shopping, <span className="gradient-text">Automated.</span>
-          </motion.h1>
-
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-xl text-gray-400 mb-10 max-w-2xl leading-relaxed"
-          >
-            NEXORA is a next-generation AI commerce platform. Tell the AI what you need, and it searches, compares, and purchases for you.
-          </motion.p>
-        </div>
-
-        <ChatInterface />
-      </main>
-    </div>
-  );
-}
-
-function ChatInterface() {
-  const [input, setInput] = useState('');
-  const [messages, setMessages] = useState([
-    { role: 'assistant', text: 'Hello! I am your NEXORA Personal Shopping Agent. What are we looking for today?' }
-  ]);
-  const [loading, setLoading] = useState(false);
-
-  const handleSend = async () => {
-    if (!input.trim()) return;
-    
-    const userMsg = input.trim();
-    setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
-    setInput('');
-    setLoading(true);
-
-    try {
-      const response = await fetch(`http://localhost:8001/api/v1/chat?query=${encodeURIComponent(userMsg)}`, {
-        method: 'POST'
-      });
-      const data = await response.json();
-      
-      const assistantText = `I found that you are looking for: ${data.intent}. ${data.reasoning}. I've lined up these products: ${data.products.join(", ")}`;
-      setMessages(prev => [...prev, { role: 'assistant', text: assistantText }]);
-    } catch (err) {
-      setMessages(prev => [...prev, { role: 'assistant', text: 'Sorry, the AI Engine is currently offline or unreachable.' }]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 40 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7, delay: 0.5 }}
-      className="mt-10 w-full max-w-3xl mx-auto"
-    >
-      <div className="glass-panel rounded-2xl overflow-hidden flex flex-col shadow-2xl">
-        <div className="h-12 border-b border-white/10 flex items-center px-4 bg-white/5 shrink-0">
-          <div className="flex gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50" />
-            <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50" />
-            <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50" />
-          </div>
-          <div className="mx-auto flex items-center gap-2 text-xs text-gray-500 bg-black/40 px-3 py-1 rounded-md">
-            <ShoppingBag className="w-3 h-3" />
-            nexora.ai / assistant
-          </div>
+    <main className="relative pt-24 pb-16 px-6 max-w-7xl mx-auto min-h-screen">
+      {/* Featured Hero Banner */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full h-[400px] rounded-3xl bg-gradient-to-tr from-purple-900/40 via-black to-blue-900/40 border border-white/10 overflow-hidden relative flex items-center px-12 mb-12"
+      >
+        <div className="max-w-xl z-10">
+          <span className="inline-block py-1 px-3 rounded-full bg-white/10 text-xs font-medium text-purple-300 mb-4 border border-purple-500/30">New Arrival</span>
+          <h1 className="text-5xl font-bold text-white mb-4 tracking-tight">The Future of Productivity.</h1>
+          <p className="text-gray-400 text-lg mb-8">Experience the next generation of ergonomic workspaces, engineered perfectly for your comfort.</p>
+          <Button size="lg" className="rounded-full bg-white text-black hover:bg-gray-200">
+            Shop Collection <ArrowRight className="ml-2 w-4 h-4" />
+          </Button>
         </div>
         
-        <div className="p-6 h-[400px] flex flex-col gap-6 bg-black/40 overflow-y-auto">
-          {messages.map((msg, i) => (
-            <div key={i} className={`flex gap-4 max-w-2xl ${msg.role === 'user' ? 'self-end flex-row-reverse' : ''}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'user' ? 'bg-zinc-800' : 'bg-gradient-to-tr from-purple-500 to-blue-500'}`}>
-                {msg.role === 'user' ? <span className="text-xs">You</span> : <Bot className="w-4 h-4 text-white" />}
-              </div>
-              <div className={`border rounded-2xl p-4 text-sm ${msg.role === 'user' ? 'bg-blue-600/20 border-blue-500/30 rounded-tr-sm text-gray-200' : 'bg-white/5 border-white/10 rounded-tl-sm text-gray-300'}`}>
-                <p>{msg.text}</p>
-              </div>
-            </div>
-          ))}
+        {/* Abstract shapes for visual interest */}
+        <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-black/20 to-transparent" />
+        <div className="absolute right-12 top-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-purple-500/20 blur-[80px]" />
+      </motion.div>
 
-          {loading && (
-            <div className="flex gap-4 max-w-3xl">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center shrink-0">
-                <Bot className="w-4 h-4 text-white" />
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-2xl rounded-tl-sm p-4 text-sm text-gray-300 w-full space-y-4">
-                <div className="flex items-center gap-2 text-purple-400">
-                  <Sparkles className="w-4 h-4" />
-                  <span className="font-medium text-xs uppercase tracking-wider">Analyzing requirements & Scanning catalog</span>
-                </div>
-                <div className="space-y-2">
-                  <div className="h-2 bg-white/10 rounded-full w-3/4 animate-pulse" />
-                  <div className="h-2 bg-white/10 rounded-full w-1/2 animate-pulse" />
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="p-4 bg-white/5 border-t border-white/10">
-          <div className="relative flex items-center">
-            <input 
-              type="text" 
-              placeholder="Ask NEXORA anything... (e.g. Find me a mechanical keyboard under $100)" 
-              className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 outline-none focus:border-purple-500/50 transition-colors"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSend();
-                }
-              }}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-            />
-            <Button size="icon" onClick={handleSend} className="absolute right-2 rounded-lg bg-white/10 hover:bg-white/20 text-white w-8 h-8">
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
+      {/* Categories Bar */}
+      <div className="flex items-center gap-3 overflow-x-auto pb-4 mb-8 custom-scrollbar">
+        {CATEGORIES.map((cat, i) => (
+          <button 
+            key={cat}
+            className={`px-5 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-colors ${
+              i === 0 
+                ? 'bg-white text-black' 
+                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/5'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
       </div>
-    </motion.div>
+
+      {/* Product Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {DUMMY_PRODUCTS.map((product, i) => (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05 }}
+            key={product.id}
+            className="group glass-panel rounded-2xl overflow-hidden flex flex-col hover:border-purple-500/50 transition-all hover:shadow-2xl hover:shadow-purple-500/10 cursor-pointer"
+          >
+            <div className={`w-full h-48 ${product.image} relative flex items-center justify-center`}>
+              {/* Dummy Image Placeholder */}
+              <div className="w-20 h-20 rounded-full bg-black/40 shadow-inner flex items-center justify-center text-white/20">
+                Image
+              </div>
+              
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                <Button className="rounded-full bg-white text-black hover:bg-gray-200">
+                  <ShoppingCart className="w-4 h-4 mr-2" /> Add to Cart
+                </Button>
+              </div>
+            </div>
+            
+            <div className="p-5 flex flex-col gap-2">
+              <div className="flex justify-between items-start gap-2">
+                <h3 className="font-semibold text-sm text-gray-200 line-clamp-2">{product.name}</h3>
+                <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-md shrink-0">
+                  <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                  <span className="text-xs font-medium">{product.rating}</span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500">{product.category}</p>
+              <div className="mt-2 text-lg font-bold text-white">
+                ${product.price.toFixed(2)}
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </main>
   );
 }
