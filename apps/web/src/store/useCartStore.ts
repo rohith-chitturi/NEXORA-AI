@@ -17,6 +17,9 @@ interface CartState {
   clearCart: () => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
+  isDrawerOpen: boolean;
+  openDrawer: () => void;
+  closeDrawer: () => void;
 }
 
 export const useCartStore = create<CartState>()(
@@ -61,6 +64,10 @@ export const useCartStore = create<CartState>()(
       getTotalPrice: () => {
         return get().items.reduce((total, item) => total + (item.price * item.quantity), 0);
       },
+      
+      isDrawerOpen: false,
+      openDrawer: () => set({ isDrawerOpen: true }),
+      closeDrawer: () => set({ isDrawerOpen: false }),
     }),
     {
       name: 'nexora-cart-storage',

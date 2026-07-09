@@ -4,6 +4,7 @@ import { Sparkles, Search, ShoppingCart } from "lucide-react";
 import "./globals.css";
 import { AIAssistantWidget } from "@/components/ui/ai-assistant-widget";
 import { CartIcon } from "@/components/ui/cart-icon";
+import { CartDrawer } from "@/components/ui/cart-drawer";
 import { ClerkProvider, SignInButton, UserButton } from '@clerk/nextjs'
 import { auth } from '@clerk/nextjs/server'
 
@@ -76,6 +77,9 @@ export default async function RootLayout({
           
           {/* Global Floating AI Agent */}
           <AIAssistantWidget />
+
+          {/* Slide-out Cart Drawer */}
+          <CartDrawer />
         </body>
       </html>
     </ClerkProvider>

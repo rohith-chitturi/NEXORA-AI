@@ -8,12 +8,14 @@ export function CartIcon() {
   const [mounted, setMounted] = useState(false);
   const itemsCount = useCartStore((state) => state.getTotalItems());
 
+  const openDrawer = useCartStore((state) => state.openDrawer);
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
   return (
-    <a href="#" className="relative hover:text-white transition-colors flex flex-col items-center gap-1 group">
+    <button onClick={openDrawer} className="relative hover:text-white transition-colors flex flex-col items-center gap-1 group bg-transparent border-none">
       <ShoppingCart className="w-4 h-4" />
       <span className="text-[10px]">Cart</span>
       {mounted && itemsCount > 0 && (
@@ -21,6 +23,6 @@ export function CartIcon() {
           {itemsCount}
         </span>
       )}
-    </a>
+    </button>
   );
 }
