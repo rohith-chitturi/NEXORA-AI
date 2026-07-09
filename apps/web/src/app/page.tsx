@@ -36,6 +36,8 @@ export default function Home() {
         setLoading(false);
       });
   }, []);
+  
+  return (
     <main className="relative pt-24 pb-16 px-6 max-w-7xl mx-auto min-h-screen">
       {/* Featured Hero Banner */}
       <motion.div 
