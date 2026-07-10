@@ -32,12 +32,17 @@ def build_workflow():
         
         products = []
         try:
-            conn = psycopg2.connect(os.environ.get("DATABASE_URL"))
+            db_url = os.environ.get("DATABASE_URL")
+            if db_url and "?" in db_url:
+                db_url = db_url.split("?")[0]
+            conn = psycopg2.connect(db_url)
             cursor = conn.cursor()
             
-            # Simple text search for intent in tags or description
-            # In a production environment, this would use pgvector
-            search_term = f"%{intent.split()[0]}%" if intent != "Unknown" else "%"
+            # Load embedding model and encode intent
+            from sentence_transformers import SentenceTransformer
+            model = SentenceTransformer('all-MiniLM-L6-v2')
+            intent_vector = model.encode(intent).tolist()
+            intent_vector_str = '[' + ','.join(map(str, intent_vector)) + ']'
             
             if budget > 0:
                 cursor.execute(
@@ -45,10 +50,11 @@ def build_workflow():
                     SELECT p.id, p.name, p."basePrice", i.url 
                     FROM "Product" p 
                     LEFT JOIN "ProductImage" i ON p.id = i."productId" AND i."isDefault" = true
-                    WHERE (p.name ILIKE %s OR p.description ILIKE %s) AND p."basePrice" <= %s 
+                    WHERE p."basePrice" <= %s 
+                    ORDER BY p.embedding <=> %s::vector
                     LIMIT 3
                     """,
-                    (search_term, search_term, budget)
+                    (budget, intent_vector_str)
                 )
             else:
                 cursor.execute(
@@ -56,10 +62,10 @@ def build_workflow():
                     SELECT p.id, p.name, p."basePrice", i.url 
                     FROM "Product" p 
                     LEFT JOIN "ProductImage" i ON p.id = i."productId" AND i."isDefault" = true
-                    WHERE p.name ILIKE %s OR p.description ILIKE %s 
+                    ORDER BY p.embedding <=> %s::vector
                     LIMIT 3
                     """,
-                    (search_term, search_term)
+                    (intent_vector_str,)
                 )
                 
             rows = cursor.fetchall()
