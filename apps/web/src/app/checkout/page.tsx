@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CreditCard, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 export default function CheckoutPage() {
   const { items, getTotalPrice } = useCartStore();
@@ -52,10 +53,15 @@ export default function CheckoutPage() {
       
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         {/* Left Column: Forms */}
-        <div className="lg:col-span-7">
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 }}
+          className="lg:col-span-7"
+        >
           <form onSubmit={handlePlaceOrder} className="space-y-8">
             {/* Shipping Information */}
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl">
+            <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl hover-glow">
               <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                 Shipping Details
               </h2>
@@ -84,7 +90,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* Payment Information */}
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl">
+            <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl hover-glow">
               <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-purple-400" /> Payment
               </h2>
@@ -112,11 +118,16 @@ export default function CheckoutPage() {
               )}
             </Button>
           </form>
-        </div>
+        </motion.div>
 
         {/* Right Column: Order Summary */}
-        <div className="lg:col-span-5">
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl sticky top-24">
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className="lg:col-span-5"
+        >
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl sticky top-24 hover-glow">
             <h2 className="text-xl font-bold text-white mb-6">Order Summary</h2>
             
             <div className="space-y-4 mb-6 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
@@ -155,7 +166,7 @@ export default function CheckoutPage() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
