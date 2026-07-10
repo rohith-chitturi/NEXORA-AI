@@ -28,6 +28,7 @@
 :root {
   --background: #09090b;
   --foreground: #fafafa;
+  --font-sans: var(--font-outfit);
 }
 
 body {
@@ -40,11 +41,20 @@ body {
 
 /* Premium Utilities */
 .glass-panel {
-  background: rgba(18, 18, 20, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+  background: rgba(18, 18, 20, 0.5);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.hover-glow {
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.hover-glow:hover {
+  box-shadow: 0 0 40px -10px rgba(168, 85, 247, 0.3);
+  border-color: rgba(168, 85, 247, 0.4);
+  transform: translateY(-4px);
 }
 
 .gradient-text {
