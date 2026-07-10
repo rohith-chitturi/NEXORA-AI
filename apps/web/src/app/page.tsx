@@ -53,8 +53,14 @@ export default function Home() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full h-[400px] rounded-3xl bg-gradient-to-tr from-purple-900/40 via-black to-blue-900/40 border border-white/10 overflow-hidden relative flex items-center px-12 mb-12"
+        className="w-full h-[400px] rounded-3xl bg-gradient-to-tr from-purple-900/40 via-black to-blue-900/40 border border-white/10 overflow-hidden relative flex items-center px-12 mb-12 group"
       >
+        {/* Animated ambient glow */}
+        <motion.div 
+          animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }} 
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/2 left-1/4 -translate-y-1/2 -translate-x-1/2 w-96 h-96 bg-purple-600/30 rounded-full blur-[100px] pointer-events-none"
+        />
         <div className="max-w-xl z-10">
           <span className="inline-block py-1 px-3 rounded-full bg-white/10 text-xs font-medium text-purple-300 mb-4 border border-purple-500/30">New Arrival</span>
           <h1 className="text-5xl font-bold text-white mb-4 tracking-tight">The Future of Productivity.</h1>
@@ -99,7 +105,7 @@ export default function Home() {
           <Link 
             key={product.id}
             href={`/product/${product.id}`}
-            className="group glass-panel rounded-2xl overflow-hidden flex flex-col hover:border-purple-500/50 transition-all hover:shadow-2xl hover:shadow-purple-500/10 cursor-pointer"
+            className="group glass-panel hover-glow rounded-2xl overflow-hidden flex flex-col cursor-pointer"
           >
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
