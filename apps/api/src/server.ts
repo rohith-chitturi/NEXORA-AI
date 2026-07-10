@@ -1,17 +1,18 @@
 import express from 'express';
 import cors from 'cors';
+import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
+import Stripe from 'stripe';
+import { clerkMiddleware } from '@clerk/express';
 
 dotenv.config();
 
 const app = express();
-const port = 4000; // Hardcode to 4000 to prevent Turborepo PORT collision
+const port = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
-
-import { PrismaClient } from '@prisma/client';
-import Stripe from 'stripe';
+app.use(clerkMiddleware());
 
 const prisma = new PrismaClient();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_51MockStripeKeyForNexora12345', {
@@ -111,68 +112,116 @@ app.get('/api/products/:id', async (req, res) => {
 
 // --- VENDOR API ENDPOINTS (Phase 9) ---
 
-// Helper to get or create a demo vendor
-async function getDemoVendor() {
-  let vendor = await prisma.vendor.findFirst();
+// Helper to authenticate user from Clerk
+async function authenticateUser(req: any) {
+  const clerkUserId = req.auth?.userId;
+  
+  if (!clerkUserId) {
+    console.warn("No Clerk token provided, falling back to Demo Customer");
+    let customer = await prisma.user.findFirst({ where: { email: 'customer@nexora.ai' } });
+    if (!customer) {
+      customer = await prisma.user.create({
+        data: {
+          email: 'customer@nexora.ai',
+          role: 'CUSTOMER',
+          firstName: 'Demo',
+          lastName: 'Customer'
+        }
+      });
+    }
+    return customer;
+  }
+  
+  // Find user by authProvider
+  let user = await prisma.user.findFirst({ where: { authProvider: clerkUserId } });
+  
+  if (!user) {
+    // Fetch user details from Clerk API
+    try {
+      const response = await fetch(`https://api.clerk.com/v1/users/${clerkUserId}`, {
+        headers: {
+          Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`
+        }
+      });
+      const clerkData = await response.json();
+      
+      const email = clerkData.email_addresses?.[0]?.email_address || `${clerkUserId}@clerk.local`;
+      const firstName = clerkData.first_name || 'Clerk';
+      const lastName = clerkData.last_name || 'User';
+      
+      user = await prisma.user.create({
+        data: {
+          email,
+          authProvider: clerkUserId,
+          firstName,
+          lastName,
+          role: 'CUSTOMER'
+        }
+      });
+    } catch (e) {
+      console.error("Failed to fetch clerk user:", e);
+      user = await prisma.user.create({
+        data: {
+          email: `${clerkUserId}@clerk.local`,
+          authProvider: clerkUserId,
+          firstName: 'Clerk',
+          lastName: 'User',
+          role: 'CUSTOMER'
+        }
+      });
+    }
+  }
+  
+  return user;
+}
+
+// Helper to get or create a vendor profile for the authenticated user
+async function authenticateVendor(req: any) {
+  const user = await authenticateUser(req);
+  
+  let vendor = await prisma.vendor.findFirst({ where: { userId: user.id } });
   if (!vendor) {
-    // Create a dummy user first
-    const user = await prisma.user.create({
-      data: {
-        email: `vendor_${Date.now()}@nexora.ai`,
-        role: 'VENDOR',
-        firstName: 'Demo',
-        lastName: 'Vendor',
-      }
-    });
     vendor = await prisma.vendor.create({
       data: {
         userId: user.id,
-        storeName: 'NEXORA Premium Store',
-        description: 'The official demo store.',
-        rating: 4.8
+        storeName: `${user.firstName}'s Store`,
+        description: 'A verified vendor store.',
+        rating: 5.0
       }
     });
+    // Ensure they have VENDOR role
+    await prisma.user.update({ where: { id: user.id }, data: { role: 'VENDOR' } });
   }
   return vendor;
 }
 
-// Helper to get or create a demo customer
-async function getDemoCustomer() {
-  let customer = await prisma.user.findFirst({ where: { email: 'customer@nexora.ai' } });
-  if (!customer) {
-    customer = await prisma.user.create({
-      data: {
-        email: 'customer@nexora.ai',
-        role: 'CUSTOMER',
-        firstName: 'Demo',
-        lastName: 'Customer'
-      }
-    });
-  }
+// Helper to get or create a customer profile and address
+async function authenticateCustomer(req: any) {
+  const user = await authenticateUser(req);
   
-  let address = await prisma.address.findFirst({ where: { userId: customer.id } });
+  let address = await prisma.address.findFirst({ where: { userId: user.id } });
   if (!address) {
     address = await prisma.address.create({
       data: {
-        userId: customer.id,
-        fullName: 'Demo Customer',
-        phone: '+1 555-0100',
-        street: '123 Fake Street',
-        city: 'San Francisco',
+        userId: user.id,
+        fullName: `${user.firstName} ${user.lastName}`,
+        phone: '+1 555-0000',
+        street: '123 Verified St',
+        city: 'Tech City',
         state: 'CA',
         country: 'US',
-        zipCode: '94105',
+        zipCode: '90001',
         isDefault: true
       }
     });
   }
   
-  return { customer, address };
+  return { customer: user, address };
 }
 
 app.get('/api/vendor/stats', async (req, res) => {
   try {
-    const vendor = await getDemoVendor();
+    const vendor = await authenticateVendor(req);
     
     // Aggregations
     const activeProducts = await prisma.product.count({
@@ -219,7 +268,7 @@ app.get('/api/vendor/stats', async (req, res) => {
 // New endpoint to fetch vendor orders
 app.get('/api/vendor/orders', async (req, res) => {
   try {
-    const vendor = await getDemoVendor();
+    const vendor = await authenticateVendor(req);
     
     // Find vendor's products
     const vendorProducts = await prisma.product.findMany({
@@ -279,7 +328,7 @@ app.get('/api/vendor/orders', async (req, res) => {
 
 app.get('/api/vendor/products', async (req, res) => {
   try {
-    const vendor = await getDemoVendor();
+    const vendor = await authenticateVendor(req);
     const products = await prisma.product.findMany({
       where: { vendorId: vendor.id },
       include: { category: true },
@@ -304,7 +353,7 @@ app.get('/api/vendor/products', async (req, res) => {
 
 app.post('/api/vendor/products', async (req, res) => {
   try {
-    const vendor = await getDemoVendor();
+    const vendor = await authenticateVendor(req);
     const { name, description, price, stock, categorySlug, tags } = req.body;
     
     // Find or create category
@@ -365,7 +414,7 @@ app.post('/api/checkout/session', async (req, res) => {
     if (apiKey === 'sk_test_51MockStripeKeyForNexora12345') {
       // Create mock order in the database
       try {
-        const { customer, address } = await getDemoCustomer();
+        const { customer, address } = await authenticateCustomer(req);
         const totalAmount = items.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0);
         
         await prisma.order.create({

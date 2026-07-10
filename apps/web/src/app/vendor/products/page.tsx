@@ -1,11 +1,17 @@
 import { Plus, Search, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { auth } from "@clerk/nextjs/server";
 
 export default async function VendorProducts() {
   let products = [];
   try {
-    const res = await fetch('http://localhost:4000/api/vendor/products', { cache: 'no-store' });
+    const { getToken } = await auth();
+    const token = await getToken();
+    const res = await fetch('http://localhost:4000/api/vendor/products', { 
+      cache: 'no-store',
+      headers: { ...(token && { Authorization: `Bearer ${token}` }) }
+    });
     if (res.ok) {
       products = await res.json();
     }

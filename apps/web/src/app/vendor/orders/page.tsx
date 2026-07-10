@@ -1,10 +1,16 @@
 import { Package, Truck, CheckCircle2, Clock } from "lucide-react";
+import { auth } from "@clerk/nextjs/server";
 
 export default async function VendorOrdersPage() {
   let orders = [];
 
   try {
-    const res = await fetch('http://localhost:4000/api/vendor/orders', { cache: 'no-store' });
+    const { getToken } = await auth();
+    const token = await getToken();
+    const res = await fetch('http://localhost:4000/api/vendor/orders', { 
+      cache: 'no-store',
+      headers: { ...(token && { Authorization: `Bearer ${token}` }) }
+    });
     if (res.ok) {
       orders = await res.json();
     }

@@ -1,4 +1,5 @@
 import { DollarSign, Package, ShoppingCart, Star } from "lucide-react";
+import { auth } from "@clerk/nextjs/server";
 
 export default async function VendorDashboard() {
   let stats = {
@@ -9,7 +10,12 @@ export default async function VendorDashboard() {
   };
 
   try {
-    const res = await fetch('http://localhost:4000/api/vendor/stats', { cache: 'no-store' });
+    const { getToken } = await auth();
+    const token = await getToken();
+    const res = await fetch('http://localhost:4000/api/vendor/stats', { 
+      cache: 'no-store',
+      headers: { ...(token && { Authorization: `Bearer ${token}` }) }
+    });
     if (res.ok) {
       stats = await res.json();
     }

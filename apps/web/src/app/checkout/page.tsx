@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, CreditCard, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useAuth } from "@clerk/nextjs";
 
 export default function CheckoutPage() {
   const { items, getTotalPrice } = useCartStore();
   const [mounted, setMounted] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const router = useRouter();
+  const { getToken } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -36,9 +38,13 @@ export default function CheckoutPage() {
     setIsProcessing(true);
     
     try {
+      const token = await getToken();
       const res = await fetch('http://localhost:4000/api/checkout/session', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
         body: JSON.stringify({ items })
       });
       

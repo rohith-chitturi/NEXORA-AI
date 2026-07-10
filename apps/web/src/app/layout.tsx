@@ -7,6 +7,7 @@ import { CartIcon } from "@/components/ui/cart-icon";
 import { CartDrawer } from "@/components/ui/cart-drawer";
 import { ClerkProvider, SignInButton, UserButton } from '@clerk/nextjs'
 import { auth } from '@clerk/nextjs/server'
+import Link from "next/link";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -74,6 +75,12 @@ export default async function RootLayout({
           </nav>
 
           {children}
+          
+          <footer className="mt-auto py-8 border-t border-white/5 bg-black/40 text-center">
+            <Link href="/vendor" className="text-gray-500 hover:text-purple-400 text-sm font-medium transition-colors">
+              Vendor Portal
+            </Link>
+          </footer>
           
           {/* Global Floating AI Agent */}
           <AIAssistantWidget />
