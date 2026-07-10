@@ -2,14 +2,16 @@ import { Plus, Search, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-const mockProducts = [
-  { id: 1, name: "Ergonomic Office Chair", price: 299.99, stock: 45, category: "Furniture", status: "Active" },
-  { id: 2, name: "Mechanical Keyboard Pro", price: 159.00, stock: 12, category: "Electronics", status: "Low Stock" },
-  { id: 3, name: "Noise Cancelling Headphones", price: 349.50, stock: 0, category: "Electronics", status: "Out of Stock" },
-  { id: 4, name: "Standing Desk Converter", price: 199.99, stock: 89, category: "Furniture", status: "Active" },
-];
-
-export default function VendorProducts() {
+export default async function VendorProducts() {
+  let products = [];
+  try {
+    const res = await fetch('http://localhost:4000/api/vendor/products', { cache: 'no-store' });
+    if (res.ok) {
+      products = await res.json();
+    }
+  } catch (error) {
+    console.error("Failed to fetch vendor products");
+  }
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -49,7 +51,14 @@ export default function VendorProducts() {
               </tr>
             </thead>
             <tbody>
-              {mockProducts.map((product) => (
+              {products.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                    No products found. Add your first product to get started!
+                  </td>
+                </tr>
+              )}
+              {products.map((product: any) => (
                 <tr key={product.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
                   <td className="px-6 py-4 font-medium text-white flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-white/10 shrink-0"></div>
