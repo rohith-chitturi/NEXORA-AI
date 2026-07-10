@@ -1,0 +1,9 @@
+{
+  "name": "ai-engine",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": ".\\venv\\Scripts\\python -m uvicorn main:app --port 8001 --reload",
+    "seed": ".\\venv\\Scripts\\python seed_vectors.py"
+  }
+}

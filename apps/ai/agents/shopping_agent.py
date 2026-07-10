@@ -41,17 +41,23 @@ class ShoppingAgent:
             
         llm_messages.append(HumanMessage(content=prompt))
         
-        response = self.llm.invoke(llm_messages)
-        
-        extracted_intent = "Unknown"
-        budget = 0.0
-        
+        # Mock fallback for demo testing if OpenAI key is missing
+        api_key = os.environ.get("OPENAI_API_KEY", "")
+        if not api_key or api_key == "your_openai_api_key_here":
+            return {
+                "extracted_intent": latest_message,
+                "budget": 0.0
+            }
+            
         try:
+            response = self.llm.invoke(llm_messages)
             data = json.loads(response.content.replace('```json', '').replace('```', ''))
             extracted_intent = data.get("intent", "Unknown")
             budget = float(data.get("budget", 0.0))
-        except:
-            extracted_intent = "Failed to parse intent"
+        except Exception as e:
+            print("LLM Error:", e)
+            extracted_intent = latest_message
+            budget = 0.0
             
         # We return a dict that will be merged into the state
         return {
