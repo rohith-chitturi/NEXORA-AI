@@ -11,13 +11,37 @@ export default function NewProduct() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
-      router.push('/vendor/products');
-    }, 1500);
+    
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      name: formData.get('name'),
+      description: formData.get('description'),
+      categorySlug: formData.get('category'),
+      tags: formData.get('tags'),
+      price: formData.get('price'),
+      stock: formData.get('stock')
+    };
+
+    try {
+      const res = await fetch('http://localhost:4000/api/vendor/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (res.ok) {
+        router.push('/vendor/products');
+        router.refresh();
+      } else {
+        console.error("Failed to create product");
+        setIsSubmitting(false);
+      }
+    } catch (error) {
+      console.error(error);
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -42,18 +66,18 @@ export default function NewProduct() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">Product Name</label>
-              <input required type="text" className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-purple-500 transition-colors" placeholder="Premium Ergonomic Chair" />
+              <input name="name" required type="text" className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-purple-500 transition-colors" placeholder="Premium Ergonomic Chair" />
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">Description</label>
-              <textarea required rows={4} className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-purple-500 transition-colors custom-scrollbar" placeholder="Describe the product in detail..."></textarea>
+              <textarea name="description" required rows={4} className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-purple-500 transition-colors custom-scrollbar" placeholder="Describe the product in detail..."></textarea>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Category</label>
-                <select className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-purple-500 transition-colors appearance-none">
+                <select name="category" className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-purple-500 transition-colors appearance-none">
                   <option value="electronics">Electronics</option>
                   <option value="furniture">Furniture</option>
                   <option value="clothing">Clothing</option>
@@ -61,7 +85,7 @@ export default function NewProduct() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Tags</label>
-                <input type="text" className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-purple-500 transition-colors" placeholder="office, ergonomic, desk (comma separated)" />
+                <input name="tags" type="text" className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-purple-500 transition-colors" placeholder="office, ergonomic, desk (comma separated)" />
               </div>
             </div>
           </div>
@@ -77,11 +101,11 @@ export default function NewProduct() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">Base Price ($)</label>
-              <input required type="number" step="0.01" className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-purple-500 transition-colors" placeholder="0.00" />
+              <input name="price" required type="number" step="0.01" className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-purple-500 transition-colors" placeholder="0.00" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">Stock Quantity</label>
-              <input required type="number" className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-purple-500 transition-colors" placeholder="100" />
+              <input name="stock" required type="number" className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-purple-500 transition-colors" placeholder="100" />
             </div>
           </div>
         </motion.div>
