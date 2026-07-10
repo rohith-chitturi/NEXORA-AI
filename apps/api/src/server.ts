@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 4000;
+const port = 4000; // Hardcode to 4000 to prevent Turborepo PORT collision
 
 app.use(cors());
 app.use(express.json());
