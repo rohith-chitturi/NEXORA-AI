@@ -12,7 +12,7 @@ const port = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
-app.use(clerkMiddleware());
+app.use(clerkMiddleware({ debug: true }));
 
 const prisma = new PrismaClient();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_51MockStripeKeyForNexora12345', {
