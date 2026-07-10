@@ -89,7 +89,7 @@ async function main() {
       basePrice: 299.99, stock: 50, vendorId: vendor.id, categoryId: catFurniture.id,
       tags: ["chair", "ergonomic", "office", "back support"],
       aiSummary: "Premium ergonomic office chair, great for back pain and long hours of work.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/furniture/annibale-colombo-bed/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1592078615290-033ee584e267?w=500&q=80"
     },
     {
       name: "Adjustable Standing Desk", slug: "adjustable-standing-desk",
@@ -97,7 +97,7 @@ async function main() {
       basePrice: 499.00, stock: 20, vendorId: vendor.id, categoryId: catFurniture.id,
       tags: ["desk", "standing", "office", "motorized"],
       aiSummary: "Electric sit-stand desk with memory presets, highly recommended for health-conscious professionals.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/furniture/annibale-colombo-sofa/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=500&q=80"
     },
     {
       name: "Modern Leather Sofa", slug: "modern-leather-sofa",
@@ -105,7 +105,7 @@ async function main() {
       basePrice: 1299.00, stock: 15, vendorId: vendor.id, categoryId: catFurniture.id,
       tags: ["sofa", "leather", "living room", "modern"],
       aiSummary: "A comfortable, high-end leather sofa suitable for contemporary homes.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/furniture/bedside-table-african-cherry/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1550254478-ead40cc54513?w=500&q=80"
     },
     {
       name: "Minimalist Bookshelf", slug: "minimalist-bookshelf",
@@ -113,7 +113,7 @@ async function main() {
       basePrice: 189.00, stock: 40, vendorId: vendor.id, categoryId: catFurniture.id,
       tags: ["bookshelf", "storage", "wood", "metal"],
       aiSummary: "Sturdy and stylish bookshelf for displaying books and decor.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/furniture/knoll-saarinen-executive-conference-chair/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1594620302200-9a762244a156?w=500&q=80"
     },
     {
       name: "Velvet Accent Chair", slug: "velvet-accent-chair",
@@ -121,7 +121,7 @@ async function main() {
       basePrice: 249.99, stock: 35, vendorId: vendor.id, categoryId: catFurniture.id,
       tags: ["chair", "accent", "velvet", "living room"],
       aiSummary: "Stylish mid-century velvet chair to add a pop of color to any room.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/furniture/wooden-bathroom-sink-with-mirror/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=500&q=80"
     },
     {
       name: "Solid Oak Dining Table", slug: "solid-oak-dining-table",
@@ -129,7 +129,7 @@ async function main() {
       basePrice: 799.00, stock: 10, vendorId: vendor.id, categoryId: catFurniture.id,
       tags: ["table", "dining", "oak", "wood"],
       aiSummary: "Durable solid oak dining table perfect for family gatherings.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/mens-shirts/casual-mens-shirt/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1577140917170-285929fb55b7?w=500&q=80"
     },
     
     // --- Electronics ---
@@ -139,7 +139,7 @@ async function main() {
       basePrice: 349.00, stock: 120, vendorId: vendor.id, categoryId: catElectronics.id,
       tags: ["headphones", "audio", "noise cancelling", "wireless"],
       aiSummary: "High-fidelity wireless headphones with advanced noise cancellation, ideal for travel and focus.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/mens-shirts/mens-shirt/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80"
     },
     {
       name: "Minimalist Mechanical Keyboard", slug: "minimalist-mechanical-keyboard",
@@ -147,7 +147,7 @@ async function main() {
       basePrice: 129.50, stock: 75, vendorId: vendor.id, categoryId: catElectronics.id,
       tags: ["keyboard", "mechanical", "minimalist", "tech"],
       aiSummary: "Compact mechanical keyboard with premium switches, excellent for coding and typing.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/mens-shoes/mens-classic-shoes/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1595225476474-87563907a212?w=500&q=80"
     },
     {
       name: "Ultra-Wide Monitor 34\"", slug: "ultra-wide-monitor-34",
@@ -155,7 +155,7 @@ async function main() {
       basePrice: 799.00, stock: 45, vendorId: vendor.id, categoryId: catElectronics.id,
       tags: ["monitor", "display", "ultrawide", "tech"],
       aiSummary: "High-resolution curved monitor offering massive screen real estate.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/mens-shoes/sneaker-shoes/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=500&q=80"
     },
     {
       name: "4K Mirrorless Camera", slug: "4k-mirrorless-camera",
@@ -163,7 +163,7 @@ async function main() {
       basePrice: 1499.00, stock: 25, vendorId: vendor.id, categoryId: catElectronics.id,
       tags: ["camera", "photography", "video", "4k"],
       aiSummary: "Top-tier mirrorless camera for creators demanding high video and photo quality.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/mens-watches/brown-leather-belt-watch/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=500&q=80"
     },
     {
       name: "Wireless Charging Pad", slug: "wireless-charging-pad",
@@ -171,7 +171,7 @@ async function main() {
       basePrice: 45.00, stock: 200, vendorId: vendor.id, categoryId: catElectronics.id,
       tags: ["charger", "wireless", "phone", "accessory"],
       aiSummary: "Fast and stylish wireless charging pad for your desk or nightstand.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/mens-watches/longines-master-collection/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1585338107529-13afc5f02586?w=500&q=80"
     },
     {
       name: "Smart Home Hub", slug: "smart-home-hub",
@@ -179,7 +179,7 @@ async function main() {
       basePrice: 129.99, stock: 80, vendorId: vendor.id, categoryId: catElectronics.id,
       tags: ["smart home", "iot", "hub", "control"],
       aiSummary: "Centralized hub to manage smart lights, locks, and thermostats easily.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/mens-watches/rolex-cellini-date-black-dial/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1558002038-1055907df827?w=500&q=80"
     },
 
     // --- Clothing ---
@@ -189,7 +189,7 @@ async function main() {
       basePrice: 29.00, stock: 300, vendorId: vendor.id, categoryId: catClothing.id,
       tags: ["t-shirt", "cotton", "apparel", "casual"],
       aiSummary: "Comfortable everyday tee made from sustainable premium cotton.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/smartphones/iphone-13-pro/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500&q=80"
     },
     {
       name: "Waterproof Winter Parka", slug: "waterproof-winter-parka",
@@ -197,7 +197,7 @@ async function main() {
       basePrice: 289.00, stock: 60, vendorId: vendor.id, categoryId: catClothing.id,
       tags: ["jacket", "winter", "waterproof", "coat"],
       aiSummary: "Heavy-duty winter coat designed for sub-zero temperatures and harsh elements.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/smartphones/iphone-x/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500&q=80"
     },
     {
       name: "Tailored Linen Trousers", slug: "tailored-linen-trousers",
@@ -205,7 +205,7 @@ async function main() {
       basePrice: 85.00, stock: 120, vendorId: vendor.id, categoryId: catClothing.id,
       tags: ["pants", "linen", "summer", "formal"],
       aiSummary: "Lightweight and stylish linen pants for warm weather.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/smartphones/oppo-a57/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=500&q=80"
     },
     {
       name: "Merino Wool Sweater", slug: "merino-wool-sweater",
@@ -213,7 +213,7 @@ async function main() {
       basePrice: 115.00, stock: 90, vendorId: vendor.id, categoryId: catClothing.id,
       tags: ["sweater", "wool", "winter", "apparel"],
       aiSummary: "Versatile and incredibly soft wool sweater for layering.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/laptops/apple-macbook-pro-14/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=500&q=80"
     },
     {
       name: "Minimalist Leather Sneakers", slug: "minimalist-leather-sneakers",
@@ -221,7 +221,7 @@ async function main() {
       basePrice: 155.00, stock: 150, vendorId: vendor.id, categoryId: catClothing.id,
       tags: ["shoes", "sneakers", "leather", "footwear"],
       aiSummary: "Clean, classic white leather sneakers offering both comfort and style.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/laptops/asus-zenbook-pro-dual-15/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=500&q=80"
     },
     {
       name: "Athletic Performance Shorts", slug: "athletic-performance-shorts",
@@ -229,7 +229,7 @@ async function main() {
       basePrice: 45.00, stock: 200, vendorId: vendor.id, categoryId: catClothing.id,
       tags: ["shorts", "athletic", "gym", "workout"],
       aiSummary: "Lightweight gym shorts with excellent mobility and breathability.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/laptops/lenovo-yoga-920/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1565084888279-aca607ecce0c?w=500&q=80"
     },
 
     // --- Fitness ---
@@ -239,7 +239,7 @@ async function main() {
       basePrice: 199.99, stock: 110, vendorId: vendor.id, categoryId: catFitness.id,
       tags: ["watch", "fitness", "tracker", "wearable"],
       aiSummary: "Comprehensive fitness tracker with heart rate and sleep monitoring.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/home-decoration/decoration-wooden-house/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1575311373937-040b8e1fd5b0?w=500&q=80"
     },
     {
       name: "Adjustable Dumbbells Set", slug: "adjustable-dumbbells-set",
@@ -247,7 +247,7 @@ async function main() {
       basePrice: 399.00, stock: 45, vendorId: vendor.id, categoryId: catFitness.id,
       tags: ["weights", "dumbbells", "home gym", "strength"],
       aiSummary: "Highly convenient adjustable weights for a complete home workout.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/home-decoration/family-tree-photo-frame/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1586401700818-192e946a3666?w=500&q=80"
     },
     {
       name: "Premium Yoga Mat", slug: "premium-yoga-mat",
@@ -255,7 +255,7 @@ async function main() {
       basePrice: 65.00, stock: 180, vendorId: vendor.id, categoryId: catFitness.id,
       tags: ["yoga", "mat", "exercise", "stretch"],
       aiSummary: "Non-slip, sustainable cork yoga mat for comfort and stability.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/home-decoration/house-interior/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=500&q=80"
     },
     {
       name: "Resistance Band Kit", slug: "resistance-band-kit",
@@ -263,7 +263,7 @@ async function main() {
       basePrice: 35.00, stock: 250, vendorId: vendor.id, categoryId: catFitness.id,
       tags: ["bands", "resistance", "workout", "home gym"],
       aiSummary: "Portable and versatile resistance band set for full-body strength training.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/home-decoration/plant-bonsai/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1598266663412-7e923e206001?w=500&q=80"
     },
     {
       name: "Percussion Massage Gun", slug: "percussion-massage-gun",
@@ -271,7 +271,7 @@ async function main() {
       basePrice: 129.00, stock: 85, vendorId: vendor.id, categoryId: catFitness.id,
       tags: ["massage", "recovery", "health", "gun"],
       aiSummary: "Powerful massage gun to relieve muscle soreness and accelerate recovery.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/womens-bags/blue-womens-handbag/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1585807469502-d965eefdeab2?w=500&q=80"
     },
 
     // --- Home ---
@@ -281,7 +281,7 @@ async function main() {
       basePrice: 45.00, stock: 150, vendorId: vendor.id, categoryId: catHome.id,
       tags: ["diffuser", "home", "aroma", "wellness"],
       aiSummary: "Elegant oil diffuser that improves room ambiance and air quality.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/womens-bags/heshe-womens-leather-bag/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1608528577891-eb055944f2e7?w=500&q=80"
     },
     {
       name: "Hand-poured Soy Candle", slug: "hand-poured-soy-candle",
@@ -289,7 +289,7 @@ async function main() {
       basePrice: 28.00, stock: 300, vendorId: vendor.id, categoryId: catHome.id,
       tags: ["candle", "scent", "decor", "relax"],
       aiSummary: "Long-lasting, non-toxic scented candle with a soothing aroma.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/womens-jewellery/green-crystal-earring/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1602874801007-bd458cb6c4d0?w=500&q=80"
     },
     {
       name: "Ceramic Coffee Pour-over", slug: "ceramic-coffee-pour-over",
@@ -297,7 +297,7 @@ async function main() {
       basePrice: 38.00, stock: 120, vendorId: vendor.id, categoryId: catHome.id,
       tags: ["coffee", "kitchen", "ceramic", "brew"],
       aiSummary: "Beautiful and functional ceramic dripper for coffee enthusiasts.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/womens-jewellery/princess-ring/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500&q=80"
     },
     {
       name: "Egyptian Cotton Sheets", slug: "egyptian-cotton-sheets",
@@ -305,7 +305,7 @@ async function main() {
       basePrice: 150.00, stock: 80, vendorId: vendor.id, categoryId: catHome.id,
       tags: ["sheets", "bedding", "cotton", "sleep"],
       aiSummary: "Premium hotel-quality bed sheets offering supreme comfort.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/furniture/annibale-colombo-bed/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=500&q=80"
     },
     {
       name: "Smart Indoor Planter", slug: "smart-indoor-planter",
@@ -313,7 +313,7 @@ async function main() {
       basePrice: 89.99, stock: 65, vendorId: vendor.id, categoryId: catHome.id,
       tags: ["plants", "garden", "smart", "kitchen"],
       aiSummary: "Effortless indoor gardening system for growing herbs year-round.",
-      imageUrl: "https://cdn.dummyjson.com/product-images/furniture/annibale-colombo-sofa/thumbnail.webp"
+      imageUrl: "https://images.unsplash.com/photo-1593696140826-c58b021acf8b?w=500&q=80"
     }
   ];
 
