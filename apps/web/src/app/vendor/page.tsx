@@ -1,11 +1,27 @@
 import { DollarSign, Package, ShoppingCart, Star } from "lucide-react";
 
-export default function VendorDashboard() {
+export default async function VendorDashboard() {
+  let stats = {
+    totalRevenue: 0,
+    activeProducts: 0,
+    pendingOrders: 0,
+    storeRating: 0
+  };
+
+  try {
+    const res = await fetch('http://localhost:4000/api/vendor/stats', { cache: 'no-store' });
+    if (res.ok) {
+      stats = await res.json();
+    }
+  } catch (error) {
+    console.error("Failed to fetch vendor stats");
+  }
+
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Dashboard</h1>
-        <p className="text-gray-400">Welcome back, Apple Store.</p>
+        <p className="text-gray-400">Welcome back to NEXORA Vendor Portal.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -17,7 +33,7 @@ export default function VendorDashboard() {
               <DollarSign className="w-5 h-5 text-purple-400" />
             </div>
           </div>
-          <div className="text-3xl font-bold text-white">$45,231.89</div>
+          <div className="text-3xl font-bold text-white">${stats.totalRevenue.toLocaleString()}</div>
           <div className="text-sm text-green-400 mt-2 flex items-center">
             <span>+20.1% from last month</span>
           </div>
@@ -30,7 +46,7 @@ export default function VendorDashboard() {
               <Package className="w-5 h-5 text-blue-400" />
             </div>
           </div>
-          <div className="text-3xl font-bold text-white">124</div>
+          <div className="text-3xl font-bold text-white">{stats.activeProducts}</div>
           <div className="text-sm text-gray-400 mt-2 flex items-center">
             <span>+3 new this week</span>
           </div>
@@ -43,7 +59,7 @@ export default function VendorDashboard() {
               <ShoppingCart className="w-5 h-5 text-orange-400" />
             </div>
           </div>
-          <div className="text-3xl font-bold text-white">32</div>
+          <div className="text-3xl font-bold text-white">{stats.pendingOrders}</div>
           <div className="text-sm text-red-400 mt-2 flex items-center">
             <span>Requires action</span>
           </div>
@@ -56,7 +72,7 @@ export default function VendorDashboard() {
               <Star className="w-5 h-5 text-yellow-400" />
             </div>
           </div>
-          <div className="text-3xl font-bold text-white">4.8</div>
+          <div className="text-3xl font-bold text-white">{stats.storeRating.toFixed(1)}</div>
           <div className="text-sm text-gray-400 mt-2 flex items-center">
             <span>Based on 1,024 reviews</span>
           </div>
