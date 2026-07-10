@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Outfit, Space_Grotesk } from "next/font/google";
 import { Sparkles, Search, ShoppingCart } from "lucide-react";
 import "./globals.css";
 import { AIAssistantWidget } from "@/components/ui/ai-assistant-widget";
@@ -8,13 +8,13 @@ import { CartDrawer } from "@/components/ui/cart-drawer";
 import { ClerkProvider, SignInButton, UserButton } from '@clerk/nextjs'
 import { auth } from '@clerk/nextjs/server'
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
 });
 
@@ -34,9 +34,9 @@ export default async function RootLayout({
     <ClerkProvider>
       <html
         lang="en"
-        className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+        className={`${outfit.variable} ${spaceGrotesk.variable} h-full antialiased dark`}
       >
-        <body className="min-h-full flex flex-col bg-[var(--background)] text-foreground">
+        <body className="min-h-full flex flex-col bg-[var(--background)] text-foreground font-sans transition-colors duration-500">
           {/* Global Navigation */}
           <nav className="fixed top-0 w-full border-b border-white/5 bg-black/40 backdrop-blur-xl z-40">
             <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
