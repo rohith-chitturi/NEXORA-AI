@@ -114,6 +114,11 @@ app.get('/api/products/:id', async (req, res) => {
 
 // Helper to authenticate user from Clerk
 async function authenticateUser(req: any) {
+  console.log("=== AUTH DEBUG ===");
+  console.log("Headers:", req.headers.authorization ? "Bearer [HIDDEN]" : "None");
+  console.log("req.auth:", req.auth);
+  console.log("==================");
+  
   const clerkUserId = req.auth?.userId;
   
   if (!clerkUserId) {
