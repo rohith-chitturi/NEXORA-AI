@@ -11,8 +11,12 @@ app.use(cors());
 app.use(express.json());
 
 import { PrismaClient } from '@prisma/client';
+import Stripe from 'stripe';
 
 const prisma = new PrismaClient();
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_51MockStripeKeyForNexora12345', {
+  apiVersion: '2023-10-16' as any,
+});
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'nexora-api' });
@@ -215,6 +219,52 @@ app.post('/api/vendor/products', async (req, res) => {
     console.error("Error creating vendor product:", error);
     res.status(500).json({ error: "Internal server error" });
   }
+});
+
+// --- STRIPE API ENDPOINTS (Phase 10) ---
+
+app.post('/api/checkout/session', async (req, res) => {
+  try {
+    const { items, successUrl, cancelUrl } = req.body;
+    
+    if (!items || items.length === 0) {
+      return res.status(400).json({ error: "Cart is empty" });
+    }
+    
+    const line_items = items.map((item: any) => ({
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: item.name,
+          images: item.image ? [item.image] : undefined,
+        },
+        unit_amount: Math.round(item.price * 100), // Stripe expects cents
+      },
+      quantity: item.quantity,
+    }));
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items,
+      mode: 'payment',
+      success_url: successUrl || 'http://localhost:3000/checkout/success',
+      cancel_url: cancelUrl || 'http://localhost:3000/checkout',
+      shipping_address_collection: {
+        allowed_countries: ['US', 'CA', 'GB'],
+      },
+    });
+
+    res.json({ url: session.url });
+  } catch (error: any) {
+    console.error("Error creating stripe session:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/webhook/stripe', (req, res) => {
+  // Mock webhook handler for when Stripe redirects back or sends an event
+  console.log("Stripe webhook received! Event type:", req.body.type);
+  res.json({ received: true });
 });
 
 app.listen(port, () => {
