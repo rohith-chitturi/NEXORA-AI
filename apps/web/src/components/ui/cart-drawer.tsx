@@ -63,8 +63,14 @@ export function CartDrawer() {
 
             {/* Cart Items */}
             <div className="flex-1 overflow-y-auto p-6 custom-scrollbar flex flex-col gap-4">
+              <AnimatePresence initial={false}>
               {items.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                <motion.div 
+                  initial={{ opacity: 0 }} 
+                  animate={{ opacity: 1 }} 
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col items-center justify-center h-full text-gray-400"
+                >
                   <ShoppingBag className="w-12 h-12 mb-4 opacity-20" />
                   <p>Your cart is empty.</p>
                   <Button 
@@ -74,10 +80,17 @@ export function CartDrawer() {
                   >
                     Continue Shopping
                   </Button>
-                </div>
+                </motion.div>
               ) : (
                 items.map((item) => (
-                  <div key={item.id} className="flex gap-4 bg-white/5 border border-white/5 rounded-2xl p-3">
+                  <motion.div 
+                    layout
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                    key={item.id} 
+                    className="flex gap-4 bg-white/5 border border-white/5 rounded-2xl p-3 hover-glow"
+                  >
                     <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-white/10">
                       <img src={item.image} alt={item.name} className="w-full h-full object-cover bg-white" />
                     </div>
@@ -111,9 +124,10 @@ export function CartDrawer() {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))
               )}
+              </AnimatePresence>
             </div>
 
             {/* Footer */}
