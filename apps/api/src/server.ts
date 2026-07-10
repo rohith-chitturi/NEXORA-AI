@@ -136,6 +136,40 @@ async function getDemoVendor() {
   return vendor;
 }
 
+// Helper to get or create a demo customer
+async function getDemoCustomer() {
+  let customer = await prisma.user.findFirst({ where: { email: 'customer@nexora.ai' } });
+  if (!customer) {
+    customer = await prisma.user.create({
+      data: {
+        email: 'customer@nexora.ai',
+        role: 'CUSTOMER',
+        firstName: 'Demo',
+        lastName: 'Customer'
+      }
+    });
+  }
+  
+  let address = await prisma.address.findFirst({ where: { userId: customer.id } });
+  if (!address) {
+    address = await prisma.address.create({
+      data: {
+        userId: customer.id,
+        fullName: 'Demo Customer',
+        phone: '+1 555-0100',
+        street: '123 Fake Street',
+        city: 'San Francisco',
+        state: 'CA',
+        country: 'US',
+        zipCode: '94105',
+        isDefault: true
+      }
+    });
+  }
+  
+  return { customer, address };
+}
+
 app.get('/api/vendor/stats', async (req, res) => {
   try {
     const vendor = await getDemoVendor();
@@ -145,17 +179,100 @@ app.get('/api/vendor/stats', async (req, res) => {
       where: { vendorId: vendor.id }
     });
     
-    // Mock pending orders and revenue since order logic isn't fully built
+    // Get real order stats
+    // Find all products by this vendor
+    const vendorProductIds = (await prisma.product.findMany({
+      where: { vendorId: vendor.id },
+      select: { id: true }
+    })).map((p: { id: string }) => p.id);
+    
+    // Find all order items that contain this vendor's products
+    const orderItems = await prisma.orderItem.findMany({
+      where: { productId: { in: vendorProductIds } }
+    });
+    
+    const totalRevenue = orderItems.reduce((acc: number, item: any) => acc + (parseFloat(item.unitPrice.toString()) * item.quantity), 0);
+    
+    // Find orders that are pending
+    const orderIds = [...new Set(orderItems.map((item: any) => item.orderId))];
+    const pendingOrdersCount = await prisma.order.count({
+      where: {
+        id: { in: orderIds },
+        status: 'PENDING'
+      }
+    });
+    
     const stats = {
-      totalRevenue: 45231.89,
+      totalRevenue: totalRevenue || 0,
       activeProducts,
-      pendingOrders: 32,
+      pendingOrders: pendingOrdersCount,
       storeRating: vendor.rating
     };
     
     res.json(stats);
   } catch (error) {
     console.error("Error fetching vendor stats:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// New endpoint to fetch vendor orders
+app.get('/api/vendor/orders', async (req, res) => {
+  try {
+    const vendor = await getDemoVendor();
+    
+    // Find vendor's products
+    const vendorProducts = await prisma.product.findMany({
+      where: { vendorId: vendor.id },
+      select: { id: true, name: true }
+    });
+    const vendorProductIds = vendorProducts.map((p: any) => p.id);
+    
+    // Find orders containing these products
+    const orderItems = await prisma.orderItem.findMany({
+      where: { productId: { in: vendorProductIds } },
+      include: {
+        order: {
+          include: {
+            user: true,
+            shippingAddress: true
+          }
+        },
+        product: true
+      }
+    });
+    
+    // Group by order
+    const ordersMap: Record<string, any> = {};
+    
+    for (const item of orderItems) {
+      if (!ordersMap[item.orderId]) {
+        ordersMap[item.orderId] = {
+          id: item.order.id,
+          customerName: `${item.order.user.firstName} ${item.order.user.lastName}`,
+          customerEmail: item.order.user.email,
+          status: item.order.status,
+          date: item.order.createdAt,
+          items: [],
+          totalAmount: 0
+        };
+      }
+      
+      const itemTotal = parseFloat(item.unitPrice.toString()) * item.quantity;
+      ordersMap[item.orderId].items.push({
+        name: item.product.name,
+        quantity: item.quantity,
+        price: itemTotal
+      });
+      ordersMap[item.orderId].totalAmount += itemTotal;
+    }
+    
+    // Convert to array and sort by date descending
+    const ordersArray = Object.values(ordersMap).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    res.json(ordersArray);
+  } catch (error) {
+    console.error("Error fetching vendor orders:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -246,6 +363,31 @@ app.post('/api/checkout/session', async (req, res) => {
     // If using a mock Stripe key for demo, skip real API call and simulate success
     const apiKey = process.env.STRIPE_SECRET_KEY || 'sk_test_51MockStripeKeyForNexora12345';
     if (apiKey === 'sk_test_51MockStripeKeyForNexora12345') {
+      // Create mock order in the database
+      try {
+        const { customer, address } = await getDemoCustomer();
+        const totalAmount = items.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0);
+        
+        await prisma.order.create({
+          data: {
+            userId: customer.id,
+            status: 'PENDING',
+            totalAmount,
+            finalAmount: totalAmount,
+            shippingAddressId: address.id,
+            items: {
+              create: items.map((item: any) => ({
+                productId: item.id,
+                quantity: item.quantity,
+                unitPrice: item.price
+              }))
+            }
+          }
+        });
+      } catch (dbError) {
+        console.error("Error creating mock order:", dbError);
+      }
+      
       return res.json({ url: successUrl || 'http://localhost:3000/checkout/success' });
     }
 
