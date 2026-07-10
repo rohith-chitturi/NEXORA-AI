@@ -239,7 +239,7 @@ async function main() {
       basePrice: 199.99, stock: 110, vendorId: vendor.id, categoryId: catFitness.id,
       tags: ["watch", "fitness", "tracker", "wearable"],
       aiSummary: "Comprehensive fitness tracker with heart rate and sleep monitoring.",
-      imageUrl: "https://images.unsplash.com/photo-1575311373937-040b8e1fd5b0?w=500&q=80"
+      imageUrl: "https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=500&q=80"
     },
     {
       name: "Adjustable Dumbbells Set", slug: "adjustable-dumbbells-set",
@@ -247,7 +247,7 @@ async function main() {
       basePrice: 399.00, stock: 45, vendorId: vendor.id, categoryId: catFitness.id,
       tags: ["weights", "dumbbells", "home gym", "strength"],
       aiSummary: "Highly convenient adjustable weights for a complete home workout.",
-      imageUrl: "https://images.unsplash.com/photo-1586401700818-192e946a3666?w=500&q=80"
+      imageUrl: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=500&q=80"
     },
     {
       name: "Premium Yoga Mat", slug: "premium-yoga-mat",
@@ -263,7 +263,7 @@ async function main() {
       basePrice: 35.00, stock: 250, vendorId: vendor.id, categoryId: catFitness.id,
       tags: ["bands", "resistance", "workout", "home gym"],
       aiSummary: "Portable and versatile resistance band set for full-body strength training.",
-      imageUrl: "https://images.unsplash.com/photo-1598266663412-7e923e206001?w=500&q=80"
+      imageUrl: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=500&q=80"
     },
     {
       name: "Percussion Massage Gun", slug: "percussion-massage-gun",
@@ -271,7 +271,7 @@ async function main() {
       basePrice: 129.00, stock: 85, vendorId: vendor.id, categoryId: catFitness.id,
       tags: ["massage", "recovery", "health", "gun"],
       aiSummary: "Powerful massage gun to relieve muscle soreness and accelerate recovery.",
-      imageUrl: "https://images.unsplash.com/photo-1585807469502-d965eefdeab2?w=500&q=80"
+      imageUrl: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=500&q=80"
     },
 
     // --- Home ---
@@ -289,7 +289,7 @@ async function main() {
       basePrice: 28.00, stock: 300, vendorId: vendor.id, categoryId: catHome.id,
       tags: ["candle", "scent", "decor", "relax"],
       aiSummary: "Long-lasting, non-toxic scented candle with a soothing aroma.",
-      imageUrl: "https://images.unsplash.com/photo-1602874801007-bd458cb6c4d0?w=500&q=80"
+      imageUrl: "https://images.unsplash.com/photo-1603006905003-be475563bc59?w=500&q=80"
     },
     {
       name: "Ceramic Coffee Pour-over", slug: "ceramic-coffee-pour-over",
