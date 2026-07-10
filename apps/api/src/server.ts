@@ -182,6 +182,14 @@ async function authenticateUser(req: any) {
 
 // Helper to get or create a vendor profile for the authenticated user
 async function authenticateVendor(req: any) {
+  const clerkUserId = req.auth?.userId;
+  
+  if (!clerkUserId) {
+    console.warn("No Clerk token provided, falling back to first Demo Vendor");
+    const vendor = await prisma.vendor.findFirst();
+    return vendor;
+  }
+
   const user = await authenticateUser(req);
   
   let vendor = await prisma.vendor.findFirst({ where: { userId: user.id } });
