@@ -31,13 +31,29 @@ export default function CheckoutPage() {
     );
   }
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
-    // Simulate API request
-    setTimeout(() => {
-      router.push('/checkout/success');
-    }, 1500);
+    
+    try {
+      const res = await fetch('http://localhost:4000/api/checkout/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items })
+      });
+      
+      const data = await res.json();
+      
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error("No checkout URL returned");
+        setIsProcessing(false);
+      }
+    } catch (error) {
+      console.error("Error creating checkout session", error);
+      setIsProcessing(false);
+    }
   };
 
   const subtotal = getTotalPrice();
@@ -91,32 +107,20 @@ export default function CheckoutPage() {
 
             {/* Payment Information */}
             <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl hover-glow">
-              <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-purple-400" /> Payment
+              <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-purple-400" /> Secure Payment
               </h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Card Number</label>
-                  <input required type="text" maxLength={19} className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-purple-500 transition-colors" placeholder="4111 1111 1111 1111" />
-                </div>
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Expiry Date</label>
-                  <input required type="text" maxLength={5} className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-purple-500 transition-colors" placeholder="MM/YY" />
-                </div>
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-sm font-medium text-gray-400 mb-1">CVC</label>
-                  <input required type="text" maxLength={4} className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-purple-500 transition-colors" placeholder="123" />
-                </div>
-              </div>
+              <p className="text-gray-400 text-sm mb-6">
+                You will be redirected to Stripe to securely complete your purchase.
+              </p>
+              <Button type="submit" disabled={isProcessing} className="w-full py-6 text-lg font-semibold rounded-2xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-xl shadow-purple-500/20 flex items-center justify-center gap-2">
+                {isProcessing ? 'Redirecting to Stripe...' : (
+                  <>
+                    <ShieldCheck className="w-5 h-5" /> Pay with Stripe • ${total.toFixed(2)}
+                  </>
+                )}
+              </Button>
             </div>
-
-            <Button type="submit" disabled={isProcessing} className="w-full py-6 text-lg font-semibold rounded-2xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-xl shadow-purple-500/20 flex items-center justify-center gap-2">
-              {isProcessing ? 'Processing...' : (
-                <>
-                  <ShieldCheck className="w-5 h-5" /> Place Order • ${total.toFixed(2)}
-                </>
-              )}
-            </Button>
           </form>
         </motion.div>
 
