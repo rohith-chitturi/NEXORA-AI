@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 
 export default function NewProduct() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  const { getToken } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -26,9 +28,13 @@ export default function NewProduct() {
     };
 
     try {
+      const token = await getToken();
       const res = await fetch('http://localhost:4000/api/vendor/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
         body: JSON.stringify(data)
       });
       if (res.ok) {
