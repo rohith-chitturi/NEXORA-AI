@@ -264,11 +264,60 @@ app.get('/api/vendor/stats', async (req, res) => {
       }
     });
     
+    // Fetch 5 most recent orders
+    const recentOrdersDb = await prisma.order.findMany({
+      where: { id: { in: orderIds } },
+      include: {
+        user: true,
+        items: true
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 5
+    });
+
+    const recentOrders = recentOrdersDb.map(order => ({
+      id: order.id,
+      customerName: `${order.user.firstName} ${order.user.lastName}`,
+      customerEmail: order.user.email,
+      status: order.status,
+      date: order.createdAt,
+      totalAmount: parseFloat(order.totalAmount.toString()),
+      itemCount: order.items.reduce((sum, item) => sum + item.quantity, 0)
+    }));
+
+    // Calculate Top Products by quantity sold
+    const productSales: Record<string, number> = {};
+    for (const item of orderItems) {
+      if (!productSales[item.productId]) {
+        productSales[item.productId] = 0;
+      }
+      productSales[item.productId] += item.quantity;
+    }
+
+    const sortedProductIds = Object.keys(productSales).sort((a, b) => productSales[b] - productSales[a]).slice(0, 4);
+
+    const topProductsDb = await prisma.product.findMany({
+      where: { id: { in: sortedProductIds } },
+      include: { images: true }
+    });
+
+    const topProducts = sortedProductIds.map(id => {
+      const p = topProductsDb.find(prod => prod.id === id);
+      return p ? {
+        id: p.id,
+        name: p.name,
+        sales: productSales[id],
+        image: p.images[0]?.url || '/placeholder.jpg'
+      } : null;
+    }).filter(Boolean);
+
     const stats = {
       totalRevenue: totalRevenue || 0,
       activeProducts,
       pendingOrders: pendingOrdersCount,
-      storeRating: vendor.rating
+      storeRating: vendor.rating,
+      recentOrders,
+      topProducts
     };
     
     res.json(stats);
