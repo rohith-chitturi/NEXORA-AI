@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 import Stripe from 'stripe';
 import { clerkMiddleware } from '@clerk/express';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 dotenv.config();
 
@@ -731,68 +732,88 @@ app.post('/api/chat', async (req, res) => {
       }
     }
 
-    // Simple NLP heuristic
     let intent = "search";
     let reasoning = "I searched our catalog for items matching your keywords.";
+    let products: any[] = [];
+    let formattedProducts: any[] = [];
+
+    // GEN AI INTEGRATION (Phase 22)
+    const apiKey = process.env.GEMINI_API_KEY;
     
-    // Extract potential keywords (very basic mock NLP)
-    const stopWords = ['i', 'want', 'to', 'get', 'a', 'the', 'find', 'me', 'some', 'cheap', 'expensive', 'good', 'best', 'looking', 'for', 'it', 'is', 'in', 'on', 'at', 'my'];
-    // Remove punctuation except hyphens to keep "t-shirt" intact
-    const cleanQuery = lowerQuery.replace(/[^\w\s-]/gi, '');
-    const words = cleanQuery.split(' ').filter((w: string) => !stopWords.includes(w) && w.length > 0);
-    
-    // Search the database
-    let products = [];
-    
-    if (words.length > 0) {
-      // Advanced mock NLP: Fetch all products and score them
-      const allProducts = await prisma.product.findMany({
-        include: { images: true }
+    if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY_HERE') {
+      return res.status(500).json({ 
+        error: "Gemini API Key is missing. Please add GEMINI_API_KEY to apps/api/.env" 
       });
-
-      const scoredProducts = allProducts.map(p => {
-        let score = 0;
-        const nameLower = p.name.toLowerCase();
-        const descLower = p.description.toLowerCase();
-        // Tokenize product fields for exact word matching
-        const nameTokens = nameLower.split(/[\s-]/);
-        const descTokens = descLower.split(/[\s-]/);
-        const tags = p.tags.map(t => t.toLowerCase());
-
-        words.forEach((word: string) => {
-          // If they search for "t", we want it to match "t-shirt" token "t"
-          if (nameTokens.includes(word) || nameLower.includes(word)) score += 3;
-          if (tags.some(t => t.includes(word) || t.split(/[\s-]/).includes(word))) score += 2;
-          if (descTokens.includes(word) || descLower.includes(word)) score += 1;
-        });
-
-        return { product: p, score };
-      });
-
-      // Sort by score descending and take top 3 with score > 0
-      products = scoredProducts
-        .filter(sp => sp.score > 0)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 3)
-        .map(sp => sp.product);
-
-      intent = `search for "${words.join(' ')}"`;
-    } else {
-      // Fallback: Return top products
-      products = await prisma.product.findMany({
-        include: { images: true },
-        take: 3,
-        orderBy: { basePrice: 'desc' }
-      });
-      reasoning = "I couldn't quite catch specific keywords, so here are some of our premium products!";
     }
 
-    const formattedProducts = products.map(p => ({
-      id: p.id,
-      name: p.name,
-      price: parseFloat(p.basePrice.toString()),
-      image: p.images[0]?.url || '/placeholder.jpg'
-    }));
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", generationConfig: { responseMimeType: "application/json" } });
+      
+      const prompt = `
+        You are NEXORA AI, a friendly shopping assistant. 
+        The user said: "${query}"
+        
+        Analyze their request and extract their intent into a JSON object with this exact structure:
+        {
+          "action": "search" or "buy" (use buy if they explicitly mention buying, booking, or purchasing),
+          "keywords": ["keyword1", "keyword2"] (extract the core product features or names they want),
+          "summary": "A friendly conversational response acknowledging their request"
+        }
+      `;
+
+      const result = await model.generateContent(prompt);
+      const aiResponse = JSON.parse(result.response.text());
+      
+      intent = aiResponse.action;
+      reasoning = aiResponse.summary;
+      const extractedKeywords = aiResponse.keywords || [];
+
+      // Search the database using the AI extracted keywords
+      if (extractedKeywords.length > 0) {
+        const allProducts = await prisma.product.findMany({ include: { images: true } });
+        
+        const scoredProducts = allProducts.map(p => {
+          let score = 0;
+          const nameLower = p.name.toLowerCase();
+          const descLower = p.description.toLowerCase();
+          const tags = p.tags.map(t => t.toLowerCase());
+
+          extractedKeywords.forEach((word: string) => {
+            const w = word.toLowerCase();
+            if (nameLower.includes(w)) score += 3;
+            if (tags.some(t => t.includes(w))) score += 2;
+            if (descLower.includes(w)) score += 1;
+          });
+
+          return { product: p, score };
+        });
+
+        products = scoredProducts
+          .filter(sp => sp.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 3)
+          .map(sp => sp.product);
+      } else {
+        // Fallback
+        products = await prisma.product.findMany({
+          include: { images: true },
+          take: 3,
+          orderBy: { basePrice: 'desc' }
+        });
+      }
+
+      formattedProducts = products.map(p => ({
+        id: p.id,
+        name: p.name,
+        price: parseFloat(p.basePrice.toString()),
+        image: p.images[0]?.url || '/placeholder.jpg'
+      }));
+
+    } catch (genAiError) {
+      console.error("Gemini AI failed:", genAiError);
+      return res.status(500).json({ error: "AI Engine failed to parse your request." });
+    }
 
     if (formattedProducts.length === 0) {
       reasoning = "I couldn't find any products matching your exact request in our current catalog.";
