@@ -8,6 +8,7 @@ import { useCartStore } from '@/store/useCartStore';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
+import { VendorChatWidget } from '@/components/ui/vendor-chat';
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -368,6 +369,10 @@ export default function ProductPage() {
           )}
         </div>
       </div>
+
+      {product?.vendor && (
+        <VendorChatWidget vendorId={product.vendor.id} storeName={product.vendor.storeName} />
+      )}
     </main>
   );
 }
