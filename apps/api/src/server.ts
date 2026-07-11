@@ -277,6 +277,78 @@ app.get('/api/user/orders', async (req, res) => {
   }
 });
 
+// --- WISHLIST API ---
+app.get('/api/wishlist', async (req, res) => {
+  try {
+    const user = await authenticateUser(req);
+    const wishlistItems = await prisma.wishlist.findMany({
+      where: { userId: user.id },
+      include: {
+        product: {
+          include: {
+            images: true,
+            category: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const formatted = wishlistItems.map((item: any) => ({
+      id: item.product.id,
+      name: item.product.name,
+      price: parseFloat(item.product.basePrice),
+      category: item.product.category?.name || "Uncategorized",
+      rating: 4.5, // Mock rating
+      image: item.product.images.find((img: any) => img.isDefault)?.url || item.product.images[0]?.url || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e"
+    }));
+
+    res.json(formatted);
+  } catch (error) {
+    console.error("Error fetching wishlist:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.post('/api/wishlist/:productId', async (req, res) => {
+  try {
+    const user = await authenticateUser(req);
+    const { productId } = req.params;
+
+    // Check if product exists
+    const product = await prisma.product.findUnique({ where: { id: productId } });
+    if (!product) return res.status(404).json({ error: "Product not found" });
+
+    // Check if already in wishlist
+    const existing = await prisma.wishlist.findUnique({
+      where: {
+        userId_productId: {
+          userId: user.id,
+          productId
+        }
+      }
+    });
+
+    if (existing) {
+      // Remove from wishlist
+      await prisma.wishlist.delete({ where: { id: existing.id } });
+      res.json({ message: "Removed from wishlist", status: "removed" });
+    } else {
+      // Add to wishlist
+      await prisma.wishlist.create({
+        data: {
+          userId: user.id,
+          productId
+        }
+      });
+      res.json({ message: "Added to wishlist", status: "added" });
+    }
+  } catch (error) {
+    console.error("Error toggling wishlist:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // --- VENDOR API ENDPOINTS (Phase 9) ---
 
 // Helper to authenticate user from Clerk
