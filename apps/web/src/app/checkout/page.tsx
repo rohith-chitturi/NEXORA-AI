@@ -53,11 +53,13 @@ export default function CheckoutPage() {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        console.error("No checkout URL returned");
+        console.error("Checkout failed:", data.error || "No URL returned");
+        alert(data.error ? `Checkout failed: ${data.error}` : "Checkout failed. Please try again.");
         setIsProcessing(false);
       }
     } catch (error) {
       console.error("Error creating checkout session", error);
+      alert("Checkout failed. Please try again.");
       setIsProcessing(false);
     }
   };

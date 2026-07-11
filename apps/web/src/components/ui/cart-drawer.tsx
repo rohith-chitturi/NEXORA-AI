@@ -65,8 +65,8 @@ export function CartDrawer() {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        console.error("No checkout URL returned");
-        alert("Checkout failed. Please try again.");
+        console.error("Checkout failed:", data.error || "No URL returned");
+        alert(data.error ? `Checkout failed: ${data.error}` : "Checkout failed. Please try again.");
       }
     } catch (error) {
       console.error("Checkout error:", error);
