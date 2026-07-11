@@ -6,7 +6,9 @@ export default async function VendorDashboard() {
     totalRevenue: 0,
     activeProducts: 0,
     pendingOrders: 0,
-    storeRating: 0
+    storeRating: 0,
+    recentOrders: [],
+    topProducts: []
   };
 
   try {
@@ -89,18 +91,25 @@ export default async function VendorDashboard() {
         <div className="lg:col-span-2 bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl hover-glow">
           <h2 className="text-xl font-bold text-white mb-6">Recent Orders</h2>
           <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5">
+            {stats.recentOrders.length === 0 && (
+              <div className="text-gray-500 text-sm py-4">No recent orders found.</div>
+            )}
+            {stats.recentOrders.map((order: any) => (
+              <div key={order.id} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white/10 rounded-lg shrink-0"></div>
+                  <div className="w-12 h-12 bg-white/10 rounded-lg shrink-0 flex items-center justify-center">
+                    <Package className="w-5 h-5 text-gray-400" />
+                  </div>
                   <div>
-                    <h4 className="text-white font-medium text-sm">Order #ORD-{Math.floor(Math.random() * 10000)}</h4>
-                    <p className="text-xs text-gray-400">2 items • John Doe</p>
+                    <h4 className="text-white font-medium text-sm">Order #ORD-{order.id.split('-')[0]}</h4>
+                    <p className="text-xs text-gray-400">{order.itemCount} items • {order.customerName}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-white font-semibold">${(Math.random() * 500).toFixed(2)}</div>
-                  <div className="text-xs text-purple-400 mt-1">Processing</div>
+                  <div className="text-white font-semibold">${order.totalAmount.toFixed(2)}</div>
+                  <div className={`text-xs mt-1 ${order.status === 'PENDING' ? 'text-yellow-400' : 'text-purple-400'}`}>
+                    {order.status}
+                  </div>
                 </div>
               </div>
             ))}
@@ -110,12 +119,15 @@ export default async function VendorDashboard() {
         <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl hover-glow">
           <h2 className="text-xl font-bold text-white mb-6">Top Products</h2>
           <div className="space-y-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/5">
-                <div className="w-12 h-12 bg-white/10 rounded-lg shrink-0"></div>
+            {stats.topProducts.length === 0 && (
+              <div className="text-gray-500 text-sm py-4">No sales data available.</div>
+            )}
+            {stats.topProducts.map((product: any) => (
+              <div key={product.id} className="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/5">
+                <img src={product.image} alt={product.name} className="w-12 h-12 rounded-lg shrink-0 object-cover" />
                 <div className="flex-1">
-                  <h4 className="text-white font-medium text-sm line-clamp-1">Premium Product {i}</h4>
-                  <p className="text-xs text-gray-400 mt-1">{Math.floor(Math.random() * 100)} sales</p>
+                  <h4 className="text-white font-medium text-sm line-clamp-1">{product.name}</h4>
+                  <p className="text-xs text-gray-400 mt-1">{product.sales} sales</p>
                 </div>
               </div>
             ))}
