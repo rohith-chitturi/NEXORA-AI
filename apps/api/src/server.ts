@@ -107,6 +107,28 @@ app.get('/api/products/:id', async (req, res) => {
     const averageRating = p.reviews.length > 0 
       ? (p.reviews.reduce((acc: number, rev: any) => acc + rev.rating, 0) / p.reviews.length).toFixed(1)
       : 0;
+
+    // Fetch up to 4 related products in the same category
+    const relatedProductsData = await prisma.product.findMany({
+      where: {
+        categoryId: p.categoryId,
+        id: { not: p.id },
+        isActive: true
+      },
+      take: 4,
+      include: {
+        images: true,
+        category: true
+      }
+    });
+
+    const relatedProducts = relatedProductsData.map((rp: any) => ({
+      id: rp.id,
+      name: rp.name,
+      price: parseFloat(rp.basePrice.toString()),
+      category: rp.category.name,
+      image: rp.images.find((img: any) => img.isDefault)?.url || rp.images[0]?.url || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e"
+    }));
     
     const formattedProduct = {
       id: p.id,
@@ -116,9 +138,10 @@ app.get('/api/products/:id', async (req, res) => {
       category: p.category.name,
       vendor: p.vendor,
       rating: averageRating,
-      image: p.images.find(img => img.isDefault)?.url || p.images[0]?.url || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e",
-      images: p.images.map(img => img.url),
-      features: p.features
+      image: p.images.find((img: any) => img.isDefault)?.url || p.images[0]?.url || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e",
+      images: p.images.map((img: any) => img.url),
+      features: p.features,
+      relatedProducts
     };
     
     res.json(formattedProduct);
