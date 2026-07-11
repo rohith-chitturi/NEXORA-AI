@@ -1,5 +1,6 @@
 import { DollarSign, Package, ShoppingCart, Star } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
+import { VendorCharts } from "@/components/VendorCharts";
 
 export default async function VendorDashboard() {
   let stats = {
@@ -86,6 +87,11 @@ export default async function VendorDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Interactive Charts */}
+      {stats.revenueData && stats.revenueData.length > 0 && (
+        <VendorCharts data={stats.revenueData} />
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl hover-glow">
