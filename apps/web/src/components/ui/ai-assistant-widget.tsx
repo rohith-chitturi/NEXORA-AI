@@ -26,7 +26,7 @@ export function AIAssistantWidget() {
     setLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:8001/api/v1/chat`, {
+      const response = await fetch(`http://localhost:4000/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
