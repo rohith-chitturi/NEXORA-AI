@@ -90,13 +90,18 @@ app.get('/api/products/:id', async (req, res) => {
             id: true,
             storeName: true
           }
-        }
+        },
+        reviews: true
       }
     });
     
     if (!p) {
       return res.status(404).json({ error: "Product not found" });
     }
+
+    const averageRating = p.reviews.length > 0 
+      ? (p.reviews.reduce((acc: number, rev: any) => acc + rev.rating, 0) / p.reviews.length).toFixed(1)
+      : 0;
     
     const formattedProduct = {
       id: p.id,
@@ -105,7 +110,7 @@ app.get('/api/products/:id', async (req, res) => {
       price: parseFloat(p.basePrice.toString()),
       category: p.category.name,
       vendor: p.vendor,
-      rating: 4.5,
+      rating: averageRating,
       image: p.images.find(img => img.isDefault)?.url || p.images[0]?.url || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e",
       images: p.images.map(img => img.url),
       features: p.features
@@ -117,6 +122,58 @@ app.get('/api/products/:id', async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+// --- PRODUCT REVIEWS API ---
+
+app.get('/api/products/:id/reviews', async (req, res) => {
+  try {
+    const reviews = await prisma.productReview.findMany({
+      where: { productId: req.params.id },
+      include: {
+        user: {
+          select: { firstName: true, lastName: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(reviews);
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.post('/api/products/:id/reviews', async (req, res) => {
+  try {
+    const user = await authenticateUser(req);
+    const { rating, comment, title } = req.body;
+    
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: "Invalid rating" });
+    }
+
+    const review = await prisma.productReview.create({
+      data: {
+        userId: user.id,
+        productId: req.params.id,
+        rating,
+        title,
+        comment
+      },
+      include: {
+        user: {
+          select: { firstName: true, lastName: true }
+        }
+      }
+    });
+
+    res.json(review);
+  } catch (error) {
+    console.error("Error posting review:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 
 // --- VENDOR API ENDPOINTS (Phase 9) ---
 
