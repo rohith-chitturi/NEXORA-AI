@@ -55,6 +55,11 @@ model User {
   chatHistory    ChatHistory[]
   messages       Message[]
   
+  // Wallet & Affiliate
+  walletBalance  Decimal   @default(0) @db.Decimal(10, 2)
+  referralCode   String?   @unique
+  referredById   String?
+  
   // If user is a vendor
   vendorProfile  Vendor?
 }
@@ -101,6 +106,10 @@ model Product {
   // Media
   videoUrl        String?
   arModelUrl      String?   // For AR Product Preview
+  
+  // Flash Sales
+  isFlashSale     Boolean   @default(false)
+  flashSaleEndTime DateTime?
   
   // Foreign Keys
   vendorId        String
