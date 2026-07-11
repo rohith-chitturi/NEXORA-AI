@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Outfit, Space_Grotesk } from "next/font/google";
-import { Sparkles, Search, ShoppingCart } from "lucide-react";
+import { Sparkles, Search, ShoppingCart, Heart } from "lucide-react";
 import "./globals.css";
 import { AIAssistantWidget } from "@/components/ui/ai-assistant-widget";
 import { CartIcon } from "@/components/ui/cart-icon";
@@ -60,6 +60,9 @@ export default async function RootLayout({
                     </SignInButton>
                   ) : (
                     <>
+                      <Link href="/wishlist" className="hover:text-pink-400 transition-colors text-gray-400 flex items-center justify-center p-1" title="Wishlist">
+                        <Heart className="w-5 h-5" />
+                      </Link>
                       <Link href="/orders" className="hover:text-white transition-colors text-xs font-medium hidden sm:block">Orders</Link>
                       <Link href="/profile" className="hover:text-white transition-colors text-xs font-medium hidden sm:block">Profile</Link>
                       <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: "w-8 h-8" } }} />
