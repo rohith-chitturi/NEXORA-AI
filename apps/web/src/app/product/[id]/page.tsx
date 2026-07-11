@@ -193,6 +193,69 @@ export default function ProductPage() {
         </motion.div>
       </div>
 
+      {/* RELATED PRODUCTS */}
+      {product.relatedProducts && product.relatedProducts.length > 0 && (
+        <div className="mt-24 max-w-7xl mx-auto">
+          <div className="flex items-end justify-between mb-8">
+            <div>
+              <h2 className="text-3xl font-bold text-white mb-2">You Might Also Like</h2>
+              <p className="text-gray-400">Discover similar premium products from our catalog.</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            {product.relatedProducts.map((rp: any, idx: number) => (
+              <motion.div 
+                key={rp.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                className="group glass-panel rounded-2xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)] bg-black/40 flex flex-col h-80"
+              >
+                <Link href={`/product/${rp.id}`} className="block relative h-48 overflow-hidden bg-white/5">
+                  <img 
+                    src={rp.image} 
+                    alt={rp.name} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                  <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-white border border-white/10 uppercase tracking-wider">
+                    {rp.category}
+                  </div>
+                  
+                  {/* Quick Add Overlay */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        addItem({ id: rp.id, name: rp.name, price: rp.price, image: rp.image, quantity: 1 });
+                      }}
+                      className="bg-white text-black px-6 py-2 rounded-full font-bold flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-all hover:bg-gray-200 hover:scale-105"
+                    >
+                      <ShoppingCart className="w-4 h-4" /> Quick Add
+                    </button>
+                  </div>
+                </Link>
+                <div className="p-5 flex-1 flex flex-col justify-between relative z-10">
+                  <div>
+                    <h3 className="text-white font-semibold line-clamp-1 mb-1 group-hover:text-purple-400 transition-colors">{rp.name}</h3>
+                  </div>
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/10">
+                    <span className="text-xl font-bold text-white">${rp.price.toFixed(2)}</span>
+                    <button 
+                      onClick={() => addItem({ id: rp.id, name: rp.name, price: rp.price, image: rp.image, quantity: 1 })}
+                      className="w-10 h-10 rounded-full bg-white/5 hover:bg-purple-600 flex items-center justify-center transition-colors text-white border border-white/10 hover:border-purple-500"
+                    >
+                      <ShoppingCart className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* REVIEWS SECTION */}
       <div className="mt-24 max-w-4xl mx-auto">
         <h2 className="text-3xl font-bold text-white mb-8">Customer Reviews</h2>
