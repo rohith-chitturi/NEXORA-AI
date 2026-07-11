@@ -77,8 +77,16 @@ export default function ProductDetail() {
           animate={{ opacity: 1, x: 0 }}
           className="w-full lg:w-1/2 flex flex-col justify-center"
         >
-          <div className="flex items-center gap-2 mb-4 text-purple-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">{product.category}</span>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+            <span className="inline-block bg-purple-500/10 text-purple-400 border border-purple-500/20 text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full w-fit">
+              {product.category}
+            </span>
+            {product.vendor && (
+              <Link href={`/store/${product.vendor.id}`} className="group flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors bg-white/5 border border-white/10 hover:border-purple-500/30 px-3 py-1 rounded-full w-fit">
+                <span>Sold by</span>
+                <span className="font-medium text-purple-300 group-hover:text-purple-400">{product.vendor.storeName}</span>
+              </Link>
+            )}
           </div>
           
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">{product.name}</h1>

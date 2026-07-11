@@ -85,6 +85,12 @@ app.get('/api/products/:id', async (req, res) => {
       include: {
         images: true,
         category: true,
+        vendor: {
+          select: {
+            id: true,
+            storeName: true
+          }
+        }
       }
     });
     
@@ -98,6 +104,7 @@ app.get('/api/products/:id', async (req, res) => {
       description: p.description,
       price: parseFloat(p.basePrice.toString()),
       category: p.category.name,
+      vendor: p.vendor,
       rating: 4.5,
       image: p.images.find(img => img.isDefault)?.url || p.images[0]?.url || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e",
       images: p.images.map(img => img.url),
@@ -953,6 +960,48 @@ app.put('/api/vendor/profile', async (req, res) => {
   }
 });
 
+
+app.get('/api/vendor/store/:vendorId', async (req, res) => {
+  try {
+    const { vendorId } = req.params;
+    
+    // Fetch vendor and their active products
+    const vendor = await prisma.vendor.findUnique({
+      where: { id: vendorId },
+      include: {
+        products: {
+          where: { isActive: true },
+          include: { images: true, category: true }
+        }
+      }
+    });
+
+    if (!vendor || !vendor.isActive) {
+      return res.status(404).json({ error: "Store not found or is currently inactive." });
+    }
+
+    // Format products for frontend
+    const formattedProducts = vendor.products.map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      price: parseFloat(p.basePrice),
+      category: p.category.name,
+      rating: 4.5, // Mock rating
+      image: p.images.find((img: any) => img.isDefault)?.url || p.images[0]?.url || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e"
+    }));
+
+    // Send public info only
+    res.json({
+      storeName: vendor.storeName,
+      description: vendor.description,
+      logoUrl: vendor.logoUrl,
+      products: formattedProducts
+    });
+  } catch (error) {
+    console.error("Error fetching public store:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 app.listen(port, () => {
   console.log(`NEXORA API running on port ${port}`);
