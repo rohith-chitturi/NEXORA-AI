@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ShoppingCart, Zap, ShieldCheck, Gem, Tv, Sofa, Shirt, Dumbbell, Home as HomeIcon, LayoutGrid, Star } from 'lucide-react';
+import { ArrowRight, ShoppingCart, Zap, ShieldCheck, Gem, Tv, Sofa, Shirt, Dumbbell, Home as HomeIcon, LayoutGrid, Star, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/store/useCartStore';
 import Link from 'next/link';
@@ -56,6 +56,7 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
   const addItem = useCartStore((state) => state.addItem);
 
   // Auto-advance hero carousel
@@ -80,6 +81,36 @@ export default function Home() {
         setLoading(false);
       });
   }, [selectedCategory, currentPage]);
+
+  useEffect(() => {
+    // Fetch wishlist IDs to light up the hearts
+    fetch('http://localhost:4000/api/wishlist')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setWishlistIds(new Set(data.map(item => item.id)));
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  const toggleWishlist = async (e: React.MouseEvent, productId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const res = await fetch(`http://localhost:4000/api/wishlist/${productId}`, { method: 'POST' });
+      if (res.ok) {
+        setWishlistIds(prev => {
+          const next = new Set(prev);
+          if (next.has(productId)) next.delete(productId);
+          else next.add(productId);
+          return next;
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const handleCategoryClick = (cat: string) => {
     setSelectedCategory(cat);
@@ -229,6 +260,14 @@ export default function Home() {
                   {product.category}
                 </div>
                 
+                <button 
+                  onClick={(e) => toggleWishlist(e, product.id)}
+                  className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"
+                  title="Toggle Wishlist"
+                >
+                  <Heart className={`w-4 h-4 transition-colors ${wishlistIds.has(product.id) ? 'text-pink-500 fill-pink-500' : 'text-gray-300'}`} />
+                </button>
+
                 {/* Quick Add Overlay */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
                   <button 
