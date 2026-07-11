@@ -1,118 +1,154 @@
-import { Package, Truck, CheckCircle2, Clock, ChevronRight } from "lucide-react";
-import { auth } from "@clerk/nextjs/server";
-import Link from "next/link";
-import { redirect } from "next/navigation";
+'use client';
 
-export default async function CustomerOrdersPage() {
-  const { userId, getToken } = await auth();
-  
-  if (!userId) {
-    redirect("/");
-  }
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { Package, Clock, CheckCircle2, ChevronRight, ShoppingBag } from 'lucide-react';
+import Link from 'next/link';
 
-  let orders = [];
+type Order = {
+  id: string;
+  createdAt: string;
+  status: string;
+  totalAmount: number;
+  trackingNumber: string | null;
+  items: {
+    id: string;
+    product: { name: string; image: string };
+    quantity: number;
+    unitPrice: number;
+  }[];
+};
 
-  try {
-    const token = await getToken();
-    const res = await fetch('http://localhost:4000/api/orders', { 
-      cache: 'no-store',
-      headers: { ...(token && { Authorization: `Bearer ${token}` }) }
-    });
-    if (res.ok) {
-      orders = await res.json();
+export default function OrderHistoryPage() {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('http://localhost:4000/api/user/orders')
+      .then(res => res.json())
+      .then(data => {
+        setOrders(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to fetch orders:", err);
+        setLoading(false);
+      });
+  }, []);
+
+  const getStatusColor = (status: string) => {
+    switch (status.toUpperCase()) {
+      case 'DELIVERED': return 'text-green-400 bg-green-400/10 border-green-400/20';
+      case 'PROCESSING': return 'text-blue-400 bg-blue-400/10 border-blue-400/20';
+      case 'SHIPPED': return 'text-purple-400 bg-purple-400/10 border-purple-400/20';
+      default: return 'text-gray-400 bg-gray-400/10 border-gray-400/20';
     }
-  } catch (error) {
-    console.error("Failed to fetch customer orders");
-  }
+  };
 
   const getStatusIcon = (status: string) => {
-    switch(status) {
-      case 'PENDING': return <Clock className="w-4 h-4 text-yellow-400" />;
-      case 'SHIPPED': return <Truck className="w-4 h-4 text-blue-400" />;
-      case 'DELIVERED': return <CheckCircle2 className="w-4 h-4 text-green-400" />;
-      default: return <Package className="w-4 h-4 text-gray-400" />;
+    switch (status.toUpperCase()) {
+      case 'DELIVERED': return <CheckCircle2 className="w-4 h-4" />;
+      case 'PROCESSING': return <Clock className="w-4 h-4" />;
+      case 'SHIPPED': return <Package className="w-4 h-4" />;
+      default: return <Package className="w-4 h-4" />;
     }
   };
 
-  const getStatusBadgeClass = (status: string) => {
-    switch(status) {
-      case 'PENDING': return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
-      case 'SHIPPED': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
-      case 'DELIVERED': return 'bg-green-500/10 text-green-400 border-green-500/20';
-      default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
-    }
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-32 pb-16 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-purple-500 border-r-2 border-r-transparent"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12 lg:py-24">
+    <main className="min-h-screen pt-32 pb-16 px-6 max-w-5xl mx-auto">
       <div className="mb-12">
-        <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Your Orders</h1>
-        <p className="text-gray-400">View and track your recent purchases.</p>
+        <h1 className="text-3xl font-bold text-white mb-2">Order History</h1>
+        <p className="text-gray-400">Track and manage your recent purchases.</p>
       </div>
 
-      <div className="space-y-6">
-        {orders.length === 0 ? (
-          <div className="text-center py-20 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-xl">
-            <Package className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-white mb-2">No orders yet</h3>
-            <p className="text-gray-400 mb-6">Looks like you haven't made any purchases.</p>
-            <Link href="/" className="inline-flex items-center justify-center h-10 px-6 rounded-full bg-white text-black font-medium hover:bg-gray-200 transition-colors">
-              Start Shopping
-            </Link>
-          </div>
-        ) : (
-          orders.map((order: any) => (
-            <div key={order.id} className="bg-white/5 border border-white/10 rounded-3xl backdrop-blur-xl overflow-hidden hover-glow">
-              <div className="px-6 py-4 bg-black/40 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex flex-wrap items-center gap-x-8 gap-y-2 text-sm">
+      {orders.length === 0 ? (
+        <div className="text-center py-24 bg-white/5 rounded-3xl border border-white/10 flex flex-col items-center">
+          <ShoppingBag className="w-16 h-16 text-gray-600 mb-6" />
+          <h2 className="text-2xl font-bold text-white mb-2">No orders yet</h2>
+          <p className="text-gray-400 max-w-md mx-auto mb-8">When you buy something, your order will appear here.</p>
+          <Link href="/" className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-8 rounded-full transition-colors">
+            Start Shopping
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {orders.map((order, idx) => (
+            <motion.div 
+              key={order.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden hover-glow"
+            >
+              {/* Order Header */}
+              <div className="bg-white/5 p-6 border-b border-white/10 flex flex-wrap gap-4 items-center justify-between">
+                <div className="flex gap-8">
                   <div>
-                    <span className="text-gray-500 block">Order Placed</span>
-                    <span className="text-white font-medium">{new Date(order.date).toLocaleDateString()}</span>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Order Placed</p>
+                    <p className="text-sm text-gray-200">{new Date(order.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                   </div>
                   <div>
-                    <span className="text-gray-500 block">Total</span>
-                    <span className="text-white font-medium">${order.totalAmount.toFixed(2)}</span>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Total</p>
+                    <p className="text-sm text-gray-200">${order.totalAmount.toFixed(2)}</p>
                   </div>
                   <div>
-                    <span className="text-gray-500 block">Order ID</span>
-                    <span className="text-white font-medium font-mono text-xs">#ORD-{order.id.split('-')[0]}</span>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Order #</p>
+                    <p className="text-sm text-gray-200">{order.id}</p>
                   </div>
                 </div>
                 
-                <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${getStatusBadgeClass(order.status)}`}>
-                  {getStatusIcon(order.status)}
-                  {order.status}
+                <div className="flex items-center gap-4">
+                  <div className={`px-3 py-1 rounded-full border flex items-center gap-2 text-xs font-bold tracking-wide uppercase ${getStatusColor(order.status)}`}>
+                    {getStatusIcon(order.status)} {order.status}
+                  </div>
                 </div>
               </div>
-              
+
+              {/* Order Items */}
               <div className="p-6">
                 <div className="space-y-6">
-                  {order.items.map((item: any) => (
-                    <div key={item.id} className="flex gap-4">
-                      <div className="w-20 h-20 rounded-xl bg-white/5 border border-white/10 overflow-hidden shrink-0">
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                  {order.items.map((item) => (
+                    <div key={item.id} className="flex items-start gap-6">
+                      <div className="w-24 h-24 rounded-2xl overflow-hidden bg-white/5 shrink-0 border border-white/5">
+                        <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-white font-medium line-clamp-1">{item.name}</h4>
-                        <div className="mt-1 flex items-center gap-2 text-sm">
-                          <span className="text-gray-400">Qty: {item.quantity}</span>
-                          <span className="text-gray-600">•</span>
-                          <span className="text-white font-medium">${item.price.toFixed(2)}</span>
+                      <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                          <h3 className="text-lg font-semibold text-white mb-1 hover:text-purple-400 transition-colors cursor-pointer">{item.product.name}</h3>
+                          <p className="text-gray-400 text-sm mb-2">Qty: {item.quantity}</p>
+                          <div className="text-purple-400 font-bold">${item.unitPrice.toFixed(2)}</div>
                         </div>
-                      </div>
-                      <div className="hidden sm:block">
-                        <Link href={`/product/${item.id}`} className="text-sm text-purple-400 hover:text-purple-300 font-medium inline-flex items-center gap-1">
-                          View Item <ChevronRight className="w-4 h-4" />
-                        </Link>
+                        <div className="flex gap-3">
+                          <button className="px-6 py-2 rounded-full bg-white/5 border border-white/10 text-white text-sm font-semibold hover:bg-white/10 transition-colors">
+                            Buy it again
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
+                
+                {order.trackingNumber && (
+                  <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
+                    <p className="text-sm text-gray-400">Tracking Number: <span className="text-white font-mono bg-white/5 px-2 py-1 rounded">{order.trackingNumber}</span></p>
+                    <button className="text-sm text-purple-400 font-semibold hover:text-purple-300 flex items-center gap-1 transition-colors">
+                      Track Package <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </main>
   );
 }
