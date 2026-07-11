@@ -57,6 +57,7 @@ export default function Home() {
   const [totalPages, setTotalPages] = useState(1);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
+  const [sortBy, setSortBy] = useState("default");
   const addItem = useCartStore((state) => state.addItem);
 
   // Auto-advance hero carousel
@@ -69,7 +70,11 @@ export default function Home() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`http://localhost:4000/api/products?category=${selectedCategory}&page=${currentPage}&limit=8`)
+    let url = `http://localhost:4000/api/products?category=${selectedCategory}&page=${currentPage}&limit=8`;
+    if (sortBy !== 'default') {
+      url += `&sortBy=${sortBy}`;
+    }
+    fetch(url)
       .then(res => res.json())
       .then(data => {
         setProducts(data.products || []);
@@ -80,7 +85,7 @@ export default function Home() {
         console.error("Failed to fetch products", err);
         setLoading(false);
       });
-  }, [selectedCategory, currentPage]);
+  }, [selectedCategory, currentPage, sortBy]);
 
   useEffect(() => {
     // Fetch wishlist IDs to light up the hearts
@@ -208,10 +213,23 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="flex items-end justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
         <div>
           <h2 className="text-3xl font-bold text-white mb-2">Trending Products</h2>
           <p className="text-gray-400">Discover our most popular premium items.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-400">Sort by:</span>
+          <select 
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50 appearance-none min-w-[140px] cursor-pointer"
+          >
+            <option value="default">Newest First</option>
+            <option value="price_asc">Price: Low to High</option>
+            <option value="price_desc">Price: High to Low</option>
+            <option value="rating_desc">Highest Rated</option>
+          </select>
         </div>
       </div>
 
