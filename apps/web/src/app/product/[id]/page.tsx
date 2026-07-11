@@ -7,9 +7,11 @@ import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/store/useCartStore';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useAuth } from '@clerk/nextjs';
 
 export default function ProductPage() {
   const { id } = useParams();
+  const { isSignedIn } = useAuth();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [reviews, setReviews] = useState<any[]>([]);
@@ -196,9 +198,16 @@ export default function ProductPage() {
         <h2 className="text-3xl font-bold text-white mb-8">Customer Reviews</h2>
         
         {/* Write a review form */}
-        <div className="bg-white/5 border border-white/10 rounded-3xl p-8 mb-12 backdrop-blur-sm">
+        <div className="bg-white/5 border border-white/10 rounded-3xl p-8 mb-12 backdrop-blur-sm relative overflow-hidden">
+          {!isSignedIn && (
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
+              <Star className="w-8 h-8 text-yellow-500/50 mb-3" />
+              <h4 className="text-white font-bold mb-2">Please Sign In to Review</h4>
+              <p className="text-gray-400 text-sm">Join our community to share your thoughts.</p>
+            </div>
+          )}
           <h3 className="text-xl font-bold text-white mb-4">Write a Review</h3>
-          <form onSubmit={handleSubmitReview} className="space-y-6">
+          <form onSubmit={handleSubmitReview} className={`space-y-6 ${!isSignedIn ? 'opacity-30 pointer-events-none' : ''}`}>
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Rating</label>
               <div className="flex items-center gap-2">
