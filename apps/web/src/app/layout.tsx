@@ -5,6 +5,7 @@ import "./globals.css";
 import { AIAssistantWidget } from "@/components/ui/ai-assistant-widget";
 import { CartIcon } from "@/components/ui/cart-icon";
 import { CartDrawer } from "@/components/ui/cart-drawer";
+import { CartSync } from "@/components/CartSync";
 import { ClerkProvider, SignInButton, UserButton } from '@clerk/nextjs'
 import { auth } from '@clerk/nextjs/server'
 import Link from "next/link";
@@ -85,8 +86,8 @@ export default async function RootLayout({
           {/* Global Floating AI Agent */}
           <AIAssistantWidget />
 
-          {/* Slide-out Cart Drawer */}
           <CartDrawer />
+          <CartSync />
         </body>
       </html>
     </ClerkProvider>
