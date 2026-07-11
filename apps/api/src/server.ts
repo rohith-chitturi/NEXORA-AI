@@ -714,6 +714,72 @@ app.get('/api/orders', async (req, res) => {
   }
 });
 
+// --- AI CHATBOT ENGINE (Phase 18) ---
+
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { query } = req.body;
+    const lowerQuery = query.toLowerCase();
+
+    // Simple NLP heuristic
+    let intent = "search";
+    let reasoning = "I searched our catalog for items matching your keywords.";
+    
+    // Extract potential keywords (very basic mock NLP)
+    const stopWords = ['i', 'want', 'a', 'the', 'find', 'me', 'some', 'cheap', 'expensive', 'good', 'best', 'looking', 'for'];
+    const words = lowerQuery.replace(/[^\w\s]/gi, '').split(' ').filter((w: string) => !stopWords.includes(w) && w.length > 2);
+    
+    // Search the database
+    let products = [];
+    
+    if (words.length > 0) {
+      // Build a basic OR query for the words
+      products = await prisma.product.findMany({
+        where: {
+          OR: words.map((word: string) => ({
+            OR: [
+              { name: { contains: word, mode: 'insensitive' } },
+              { description: { contains: word, mode: 'insensitive' } },
+              { tags: { has: word } }
+            ]
+          }))
+        },
+        include: { images: true },
+        take: 3
+      });
+      intent = `search for "${words.join(' ')}"`;
+    } else {
+      // Fallback: Return top products
+      products = await prisma.product.findMany({
+        include: { images: true },
+        take: 3,
+        orderBy: { basePrice: 'desc' }
+      });
+      reasoning = "I couldn't quite catch specific keywords, so here are some of our premium products!";
+    }
+
+    const formattedProducts = products.map(p => ({
+      id: p.id,
+      name: p.name,
+      price: parseFloat(p.basePrice.toString()),
+      image: p.images[0]?.url || '/placeholder.jpg'
+    }));
+
+    if (formattedProducts.length === 0) {
+      reasoning = "I couldn't find any products matching your exact request in our current catalog.";
+    }
+
+    res.json({
+      intent,
+      reasoning,
+      products: formattedProducts
+    });
+  } catch (error) {
+    console.error("Error in AI Chat Engine:", error);
+    res.status(500).json({ error: "Internal AI server error" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`NEXORA API running on port ${port}`);
 });
