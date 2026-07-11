@@ -743,10 +743,10 @@ app.post('/api/chat', async (req, res) => {
     let products = [];
     
     if (words.length > 0) {
-      // Build a basic OR query for the words
+      // Build a basic AND query for the words to increase precision
       products = await prisma.product.findMany({
         where: {
-          OR: words.map((word: string) => ({
+          AND: words.map((word: string) => ({
             OR: [
               { name: { contains: word, mode: 'insensitive' } },
               { description: { contains: word, mode: 'insensitive' } },
