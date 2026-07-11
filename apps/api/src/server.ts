@@ -31,7 +31,7 @@ app.get('/api/products', async (req, res) => {
     const pageNum = parseInt(page as string, 10);
     const limitNum = parseInt(limit as string, 10);
     
-    let whereClause: any = { isActive: true };
+    let whereClause: any = {};
     if (category && category !== 'All') {
       whereClause.category = {
         name: {
@@ -135,8 +135,7 @@ app.get('/api/products/:id', async (req, res) => {
     const relatedProductsData = await prisma.product.findMany({
       where: {
         categoryId: p.categoryId,
-        id: { not: p.id },
-        isActive: true
+        id: { not: p.id }
       },
       take: 4,
       include: {
