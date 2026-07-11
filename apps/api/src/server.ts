@@ -736,8 +736,10 @@ app.post('/api/chat', async (req, res) => {
     let reasoning = "I searched our catalog for items matching your keywords.";
     
     // Extract potential keywords (very basic mock NLP)
-    const stopWords = ['i', 'want', 'a', 'the', 'find', 'me', 'some', 'cheap', 'expensive', 'good', 'best', 'looking', 'for'];
-    const words = lowerQuery.replace(/[^\w\s]/gi, '').split(' ').filter((w: string) => !stopWords.includes(w) && w.length > 2);
+    const stopWords = ['i', 'want', 'to', 'get', 'a', 'the', 'find', 'me', 'some', 'cheap', 'expensive', 'good', 'best', 'looking', 'for', 'it', 'is', 'in', 'on', 'at', 'my'];
+    // Remove punctuation except hyphens to keep "t-shirt" intact
+    const cleanQuery = lowerQuery.replace(/[^\w\s-]/gi, '');
+    const words = cleanQuery.split(' ').filter((w: string) => !stopWords.includes(w) && w.length > 0);
     
     // Search the database
     let products = [];
@@ -752,12 +754,16 @@ app.post('/api/chat', async (req, res) => {
         let score = 0;
         const nameLower = p.name.toLowerCase();
         const descLower = p.description.toLowerCase();
+        // Tokenize product fields for exact word matching
+        const nameTokens = nameLower.split(/[\s-]/);
+        const descTokens = descLower.split(/[\s-]/);
         const tags = p.tags.map(t => t.toLowerCase());
 
         words.forEach((word: string) => {
-          if (nameLower.includes(word)) score += 3;
-          if (tags.some(t => t.includes(word))) score += 2;
-          if (descLower.includes(word)) score += 1;
+          // If they search for "t", we want it to match "t-shirt" token "t"
+          if (nameTokens.includes(word) || nameLower.includes(word)) score += 3;
+          if (tags.some(t => t.includes(word) || t.split(/[\s-]/).includes(word))) score += 2;
+          if (descTokens.includes(word) || descLower.includes(word)) score += 1;
         });
 
         return { product: p, score };
