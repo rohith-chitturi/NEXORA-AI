@@ -26,12 +26,12 @@ app.get('/health', (req, res) => {
 
 app.get('/api/products', async (req, res) => {
   try {
-    const { category, page = '1', limit = '8', q } = req.query;
+    const { category, q, page = '1', limit = '10', sortBy, minPrice, maxPrice } = req.query;
     
     const pageNum = parseInt(page as string, 10);
     const limitNum = parseInt(limit as string, 10);
     
-    let whereClause: any = {};
+    let whereClause: any = { isActive: true };
     if (category && category !== 'All') {
       whereClause.category = {
         name: {
@@ -47,6 +47,16 @@ app.get('/api/products', async (req, res) => {
         { description: { contains: q as string, mode: 'insensitive' } }
       ];
     }
+    
+    if (minPrice || maxPrice) {
+      whereClause.basePrice = {};
+      if (minPrice) whereClause.basePrice.gte = parseFloat(minPrice as string);
+      if (maxPrice) whereClause.basePrice.lte = parseFloat(maxPrice as string);
+    }
+
+    let orderByClause: any = { createdAt: 'desc' };
+    if (sortBy === 'price_asc') orderByClause = { basePrice: 'asc' };
+    if (sortBy === 'price_desc') orderByClause = { basePrice: 'desc' };
 
     const totalProducts = await prisma.product.count({ where: whereClause });
     const totalPages = Math.ceil(totalProducts / limitNum);
@@ -56,20 +66,33 @@ app.get('/api/products', async (req, res) => {
       include: {
         images: true,
         category: true,
+        reviews: true
       },
+      orderBy: orderByClause,
       skip: (pageNum - 1) * limitNum,
       take: limitNum,
     });
     
     // Map data to match frontend format expectations
-    const formattedProducts = products.map(p => ({
-      id: p.id,
-      name: p.name,
-      price: parseFloat(p.basePrice.toString()),
-      category: p.category.name,
-      rating: 4.5, // Mocked rating since review logic isn't fully set up
-      image: p.images.find(img => img.isDefault)?.url || p.images[0]?.url || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e"
-    }));
+    const formattedProducts = products.map(p => {
+      const averageRating = p.reviews.length > 0 
+        ? (p.reviews.reduce((acc: number, rev: any) => acc + rev.rating, 0) / p.reviews.length).toFixed(1)
+        : 4.5;
+        
+      return {
+        id: p.id,
+        name: p.name,
+        price: parseFloat(p.basePrice.toString()),
+        category: p.category.name,
+        rating: averageRating,
+        image: p.images.find(img => img.isDefault)?.url || p.images[0]?.url || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e"
+      };
+    });
+    
+    // Manual rating sort if requested (since it's a computed field)
+    if (sortBy === 'rating_desc') {
+      formattedProducts.sort((a, b) => Number(b.rating) - Number(a.rating));
+    }
     
     res.json({
       products: formattedProducts,
