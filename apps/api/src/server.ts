@@ -924,6 +924,36 @@ app.put('/api/user/profile', async (req, res) => {
   }
 });
 
+// --- VENDOR PROFILE API (Phase 23) ---
+
+app.get('/api/vendor/profile', async (req, res) => {
+  try {
+    const vendor = await authenticateVendor(req);
+    res.json(vendor);
+  } catch (error) {
+    console.error("Error fetching vendor profile:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.put('/api/vendor/profile', async (req, res) => {
+  try {
+    const vendor = await authenticateVendor(req);
+    const { storeName, description, isActive, logoUrl } = req.body;
+
+    const updatedVendor = await prisma.vendor.update({
+      where: { id: vendor.id },
+      data: { storeName, description, isActive, logoUrl }
+    });
+
+    res.json(updatedVendor);
+  } catch (error) {
+    console.error("Error updating vendor profile:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
 app.listen(port, () => {
   console.log(`NEXORA API running on port ${port}`);
 });
