@@ -718,8 +718,8 @@ app.get('/api/orders', async (req, res) => {
 
 app.post('/api/chat', async (req, res) => {
   try {
-    const { query, mode } = req.body;
-    const lowerQuery = query.toLowerCase();
+    const { query, mode, confirm, productId } = req.body;
+    const lowerQuery = query?.toLowerCase() || '';
 
     // Authenticate user for autonomous mode
     let user;
@@ -778,39 +778,56 @@ app.post('/api/chat', async (req, res) => {
     if (formattedProducts.length === 0) {
       reasoning = "I couldn't find any products matching your exact request in our current catalog.";
     } else if (mode === 'autonomous' && user) {
-      // AUTONOMOUS BOOKING LOGIC
-      const bestProduct = products[0]; // Pick the best match
-      
-      try {
-        // Create the order immediately
-        const order = await prisma.order.create({
-          data: {
-            userId: user.customer.id,
-            status: 'PENDING',
-            totalAmount: bestProduct.basePrice,
-            finalAmount: bestProduct.basePrice,
-            shippingAddressId: user.address.id, // using mock/existing address
-            items: {
-              create: [{
-                productId: bestProduct.id,
-                quantity: 1,
-                unitPrice: bestProduct.basePrice
-              }]
+      if (confirm && productId) {
+        // STEP 2: EXECUTE BOOKING
+        const productToBook = await prisma.product.findUnique({ where: { id: productId } });
+        if (!productToBook) {
+          return res.status(404).json({ error: "Product not found for booking." });
+        }
+
+        try {
+          const order = await prisma.order.create({
+            data: {
+              userId: user.customer.id,
+              status: 'PENDING',
+              totalAmount: productToBook.basePrice,
+              finalAmount: productToBook.basePrice,
+              shippingAddressId: user.address.id,
+              items: {
+                create: [{
+                  productId: productToBook.id,
+                  quantity: 1,
+                  unitPrice: productToBook.basePrice
+                }]
+              }
             }
-          }
-        });
-        
-        intent = "booking_complete";
-        reasoning = `I have successfully purchased the ${bestProduct.name} for you!`;
-        return res.json({
-          intent,
-          reasoning,
-          orderId: order.id,
-          product: formattedProducts[0]
-        });
-      } catch (bookingError) {
-        console.error("Autonomous booking failed:", bookingError);
-        return res.status(500).json({ error: "Autonomous booking failed." });
+          });
+          
+          return res.json({
+            intent: "booking_complete",
+            reasoning: `I have successfully purchased the ${productToBook.name} for you!`,
+            orderId: order.id,
+            product: {
+              id: productToBook.id,
+              name: productToBook.name,
+              price: parseFloat(productToBook.basePrice.toString()),
+              image: productToBook.images?.[0]?.url || '/placeholder.jpg'
+            }
+          });
+        } catch (bookingError) {
+          console.error("Autonomous booking failed:", bookingError);
+          return res.status(500).json({ error: "Autonomous booking failed." });
+        }
+      } else {
+        // STEP 1: REQUIRE CONFIRMATION
+        if (formattedProducts.length > 0) {
+          const bestProduct = formattedProducts[0];
+          return res.json({
+            intent: "booking_confirmation_required",
+            reasoning: `I found the ${bestProduct.name} for $${bestProduct.price}. Would you like me to book this using your default payment method?`,
+            product: bestProduct
+          });
+        }
       }
     }
 
