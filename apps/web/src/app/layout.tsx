@@ -68,6 +68,7 @@ export default async function RootLayout({
                   ) : (
                     <>
                       <Link href="/orders" className="hover:text-white transition-colors text-xs font-medium hidden sm:block">Orders</Link>
+                      <Link href="/profile" className="hover:text-white transition-colors text-xs font-medium hidden sm:block">Profile</Link>
                       <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: "w-8 h-8" } }} />
                     </>
                   )}
