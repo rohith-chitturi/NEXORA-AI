@@ -1561,6 +1561,69 @@ app.post('/api/vendor/products', async (req, res) => {
   }
 });
 
+// --- MESSAGING API ---
+app.get('/api/messages/:vendorId', async (req, res) => {
+  try {
+    const user = await authenticateUser(req);
+    const vendorId = req.params.vendorId;
+    
+    const messages = await prisma.message.findMany({
+      where: {
+        userId: user.id,
+        vendorId: vendorId
+      },
+      orderBy: { createdAt: 'asc' }
+    });
+    
+    res.json(messages);
+  } catch (error) {
+    console.error("Error fetching messages:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.post('/api/messages/:vendorId', async (req, res) => {
+  try {
+    const user = await authenticateUser(req);
+    const vendorId = req.params.vendorId;
+    const { content, senderType } = req.body; // 'CUSTOMER' or 'VENDOR'
+    
+    const message = await prisma.message.create({
+      data: {
+        content,
+        senderType: senderType || 'CUSTOMER',
+        senderId: senderType === 'VENDOR' ? vendorId : user.id,
+        userId: user.id,
+        vendorId: vendorId
+      }
+    });
+    
+    res.json(message);
+  } catch (error) {
+    console.error("Error sending message:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get('/api/vendor/messages', async (req, res) => {
+  try {
+    const vendor = await authenticateVendor(req);
+    // Fetch all unique conversations for this vendor
+    const messages = await prisma.message.findMany({
+      where: { vendorId: vendor.id },
+      orderBy: { createdAt: 'asc' },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true, email: true } }
+      }
+    });
+    
+    res.json(messages);
+  } catch (error) {
+    console.error("Error fetching vendor messages:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`NEXORA API running on port ${port}`);
 });
