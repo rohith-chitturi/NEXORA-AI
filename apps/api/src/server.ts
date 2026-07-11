@@ -718,8 +718,18 @@ app.get('/api/orders', async (req, res) => {
 
 app.post('/api/chat', async (req, res) => {
   try {
-    const { query } = req.body;
+    const { query, mode } = req.body;
     const lowerQuery = query.toLowerCase();
+
+    // Authenticate user for autonomous mode
+    let user;
+    if (mode === 'autonomous') {
+      try {
+        user = await authenticateCustomer(req);
+      } catch (err) {
+        return res.status(401).json({ error: "You must be signed in to use Autonomous Booking." });
+      }
+    }
 
     // Simple NLP heuristic
     let intent = "search";
@@ -767,6 +777,41 @@ app.post('/api/chat', async (req, res) => {
 
     if (formattedProducts.length === 0) {
       reasoning = "I couldn't find any products matching your exact request in our current catalog.";
+    } else if (mode === 'autonomous' && user) {
+      // AUTONOMOUS BOOKING LOGIC
+      const bestProduct = products[0]; // Pick the best match
+      
+      try {
+        // Create the order immediately
+        const order = await prisma.order.create({
+          data: {
+            userId: user.customer.id,
+            status: 'PENDING',
+            totalAmount: bestProduct.basePrice,
+            finalAmount: bestProduct.basePrice,
+            shippingAddressId: user.address.id, // using mock/existing address
+            items: {
+              create: [{
+                productId: bestProduct.id,
+                quantity: 1,
+                unitPrice: bestProduct.basePrice
+              }]
+            }
+          }
+        });
+        
+        intent = "booking_complete";
+        reasoning = `I have successfully purchased the ${bestProduct.name} for you!`;
+        return res.json({
+          intent,
+          reasoning,
+          orderId: order.id,
+          product: formattedProducts[0]
+        });
+      } catch (bookingError) {
+        console.error("Autonomous booking failed:", bookingError);
+        return res.status(500).json({ error: "Autonomous booking failed." });
+      }
     }
 
     res.json({
