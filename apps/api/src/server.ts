@@ -24,6 +24,45 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'nexora-api' });
 });
 
+async function authenticateAdmin(req: any) {
+  // Use the existing function defined below
+  const user = await authenticateUser(req);
+  if (user.role !== 'ADMIN') {
+    throw new Error("Forbidden: Admin access required");
+  }
+  return user;
+}
+
+app.post('/api/user/elevate', async (req, res) => {
+  try {
+    const user = await authenticateUser(req);
+    const updated = await prisma.user.update({
+      where: { id: user.id },
+      data: { role: 'ADMIN' }
+    });
+    res.json(updated);
+  } catch (error) {
+    console.error("Error elevating user:", error);
+    res.status(500).json({ error: "Failed to elevate user" });
+  }
+});
+
+app.get('/api/admin/stats', async (req, res) => {
+  try {
+    await authenticateAdmin(req);
+    const totalUsers = await prisma.user.count();
+    const totalVendors = await prisma.vendor.count();
+    const totalOrders = await prisma.order.count();
+    
+    const result = await prisma.order.aggregate({ _sum: { totalAmount: true } });
+    const totalRevenue = parseFloat((result._sum.totalAmount || 0).toString());
+
+    res.json({ totalUsers, totalVendors, totalOrders, totalRevenue });
+  } catch (error: any) {
+    res.status(403).json({ error: error.message });
+  }
+});
+
 app.get('/api/products', async (req, res) => {
   try {
     const { category, q, page = '1', limit = '10', sortBy, minPrice, maxPrice } = req.query;
