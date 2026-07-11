@@ -347,11 +347,16 @@ app.post('/api/checkout', async (req, res) => {
             name: product.name,
             images: [item.image || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e"],
           },
-          unit_amount: Math.round(finalPrice * 100), // Stripe expects cents
+          unit_amount: Math.max(1, Math.round(finalPrice * 100)), // Ensure at least 1 cent to avoid Stripe error, or handle completely free
         },
         quantity: item.quantity,
       };
     }));
+
+    // If total is completely covered by wallet (subtotal - walletDiscount <= 0), bypass Stripe
+    if (subtotal - walletDiscount <= 0) {
+      return res.json({ url: 'http://localhost:3000/checkout/success' });
+    }
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
