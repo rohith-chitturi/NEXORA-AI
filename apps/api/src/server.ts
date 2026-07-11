@@ -26,21 +26,26 @@ app.get('/health', (req, res) => {
 
 app.get('/api/products', async (req, res) => {
   try {
-    const { category, page = '1', limit = '8' } = req.query;
+    const { category, page = '1', limit = '8', q } = req.query;
     
     const pageNum = parseInt(page as string, 10);
     const limitNum = parseInt(limit as string, 10);
     
-    let whereClause = {};
+    let whereClause: any = {};
     if (category && category !== 'All') {
-      whereClause = {
-        category: {
-          name: {
-            equals: category as string,
-            mode: 'insensitive'
-          }
+      whereClause.category = {
+        name: {
+          equals: category as string,
+          mode: 'insensitive'
         }
       };
+    }
+
+    if (q) {
+      whereClause.OR = [
+        { name: { contains: q as string, mode: 'insensitive' } },
+        { description: { contains: q as string, mode: 'insensitive' } }
+      ];
     }
 
     const totalProducts = await prisma.product.count({ where: whereClause });
