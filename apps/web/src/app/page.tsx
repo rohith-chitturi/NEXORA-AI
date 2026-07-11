@@ -1,14 +1,44 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { ArrowRight, Star, ShoppingCart } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight, ShoppingCart, Zap, ShieldCheck, Gem, Tv, Sofa, Shirt, Dumbbell, Home as HomeIcon, LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/store/useCartStore';
 import Link from 'next/link';
 
-const CATEGORIES = ["All", "Electronics", "Furniture", "Clothing", "Fitness", "Home"];
+const CATEGORIES = [
+  { name: "All", icon: LayoutGrid },
+  { name: "Electronics", icon: Tv },
+  { name: "Furniture", icon: Sofa },
+  { name: "Clothing", icon: Shirt },
+  { name: "Fitness", icon: Dumbbell },
+  { name: "Home", icon: HomeIcon }
+];
 
-import { useEffect, useState } from 'react';
+const HERO_SLIDES = [
+  {
+    title: "The Future of Productivity.",
+    subtitle: "Experience the next generation of ergonomic workspaces, engineered perfectly for your comfort.",
+    image: "https://images.unsplash.com/photo-1593640495253-23196b27a87f?w=1600&q=80",
+    tag: "New Arrival",
+    color: "from-purple-900/80 to-black"
+  },
+  {
+    title: "Minimalist Living.",
+    subtitle: "Curated premium furniture that brings peace and elegance to your modern home.",
+    image: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1600&q=80",
+    tag: "Trending",
+    color: "from-blue-900/80 to-black"
+  },
+  {
+    title: "Uncompromising Audio.",
+    subtitle: "Immersive soundscapes with industry-leading active noise cancellation.",
+    image: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=1600&q=80",
+    tag: "Premium",
+    color: "from-emerald-900/80 to-black"
+  }
+];
 
 type Product = {
   id: string;
@@ -25,7 +55,16 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const addItem = useCartStore((state) => state.addItem);
+
+  // Auto-advance hero carousel
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -44,50 +83,121 @@ export default function Home() {
 
   const handleCategoryClick = (cat: string) => {
     setSelectedCategory(cat);
-    setCurrentPage(1); // Reset to page 1 on category change
+    setCurrentPage(1);
   };
   
   return (
     <main className="relative pt-24 pb-16 px-6 max-w-7xl mx-auto min-h-screen">
-      {/* Featured Hero Banner */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full h-[400px] rounded-3xl bg-gradient-to-tr from-purple-900/40 via-black to-blue-900/40 border border-white/10 overflow-hidden relative flex items-center px-12 mb-12 group"
-      >
-        {/* Animated ambient glow */}
-        <motion.div 
-          animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }} 
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/2 left-1/4 -translate-y-1/2 -translate-x-1/2 w-96 h-96 bg-purple-600/30 rounded-full blur-[100px] pointer-events-none"
-        />
-        <div className="max-w-xl z-10">
-          <span className="inline-block py-1 px-3 rounded-full bg-white/10 text-xs font-medium text-purple-300 mb-4 border border-purple-500/30">New Arrival</span>
-          <h1 className="text-5xl font-bold text-white mb-4 tracking-tight">The Future of Productivity.</h1>
-          <p className="text-gray-400 text-lg mb-8">Experience the next generation of ergonomic workspaces, engineered perfectly for your comfort.</p>
-          <Button size="lg" className="rounded-full bg-white text-black hover:bg-gray-200">
-            Shop Collection <ArrowRight className="ml-2 w-4 h-4" />
-          </Button>
-        </div>
-        
-        {/* Abstract shapes for visual interest */}
-        <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-black/20 to-transparent" />
-        <div className="absolute right-12 top-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-purple-500/20 blur-[80px]" />
-      </motion.div>
+      
+      {/* Dynamic Hero Carousel */}
+      <div className="w-full h-[500px] rounded-[2rem] overflow-hidden relative mb-16 shadow-2xl shadow-purple-500/10 border border-white/10 group">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentSlide}
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1 }}
+            className="absolute inset-0"
+          >
+            {/* Background Image */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${HERO_SLIDES[currentSlide].image})` }}
+            />
+            {/* Gradient Overlay */}
+            <div className={`absolute inset-0 bg-gradient-to-r ${HERO_SLIDES[currentSlide].color} opacity-90`} />
+            
+            {/* Content */}
+            <div className="relative h-full flex flex-col justify-center px-12 z-10 max-w-2xl">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+              >
+                <span className="inline-block py-1.5 px-4 rounded-full bg-white/10 text-xs font-bold text-white mb-6 border border-white/20 backdrop-blur-md uppercase tracking-wider">
+                  {HERO_SLIDES[currentSlide].tag}
+                </span>
+                <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-6 tracking-tight leading-tight">
+                  {HERO_SLIDES[currentSlide].title}
+                </h1>
+                <p className="text-gray-300 text-lg md:text-xl mb-10 leading-relaxed font-light">
+                  {HERO_SLIDES[currentSlide].subtitle}
+                </p>
+                <Button size="lg" className="rounded-full bg-white text-black hover:bg-gray-200 hover:scale-105 transition-transform px-8 h-14 text-lg">
+                  Shop Collection <ArrowRight className="ml-3 w-5 h-5" />
+                </Button>
+              </motion.div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
 
-      {/* Categories Bar */}
+        {/* Carousel Indicators */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-20">
+          {HERO_SLIDES.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentSlide(idx)}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                currentSlide === idx ? 'w-8 bg-white' : 'w-2 bg-white/30 hover:bg-white/50'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Features Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm flex items-start gap-4">
+          <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center shrink-0">
+            <Zap className="w-6 h-6 text-purple-400" />
+          </div>
+          <div>
+            <h3 className="text-white font-semibold mb-1">Autonomous AI Shopping</h3>
+            <p className="text-sm text-gray-400">Let our advanced AI assistant find and purchase the perfect items for you.</p>
+          </div>
+        </div>
+        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm flex items-start gap-4">
+          <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
+            <Gem className="w-6 h-6 text-blue-400" />
+          </div>
+          <div>
+            <h3 className="text-white font-semibold mb-1">Premium Vendors Only</h3>
+            <p className="text-sm text-gray-400">Shop from hand-curated stores guaranteeing top-tier quality and authenticity.</p>
+          </div>
+        </div>
+        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm flex items-start gap-4">
+          <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
+            <ShieldCheck className="w-6 h-6 text-emerald-400" />
+          </div>
+          <div>
+            <h3 className="text-white font-semibold mb-1">Secure & Fast Delivery</h3>
+            <p className="text-sm text-gray-400">Encrypted payments and guaranteed next-day delivery on all premium items.</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-end justify-between mb-8">
+        <div>
+          <h2 className="text-3xl font-bold text-white mb-2">Trending Products</h2>
+          <p className="text-gray-400">Discover our most popular premium items.</p>
+        </div>
+      </div>
+
+      {/* Enhanced Categories Bar */}
       <div className="flex items-center gap-3 overflow-x-auto pb-4 mb-8 custom-scrollbar">
-        {CATEGORIES.map((cat, i) => (
+        {CATEGORIES.map((cat) => (
           <button 
-            key={cat}
-            onClick={() => handleCategoryClick(cat)}
-            className={`px-5 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-colors ${
-              selectedCategory === cat
-                ? 'bg-white text-black' 
-                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/5'
+            key={cat.name}
+            onClick={() => handleCategoryClick(cat.name)}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full whitespace-nowrap text-sm font-medium transition-all duration-300 ${
+              selectedCategory === cat.name
+                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/25 border border-transparent' 
+                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10 hover:border-white/20'
             }`}
           >
-            {cat}
+            <cat.icon className="w-4 h-4" />
+            {cat.name}
           </button>
         ))}
       </div>
@@ -95,85 +205,83 @@ export default function Home() {
       {/* Product Grid */}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="glass-panel rounded-2xl h-72 animate-pulse bg-white/5" />
+          {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+            <div key={i} className="rounded-2xl h-80 animate-pulse bg-white/5 border border-white/5" />
+          ))}
+        </div>
+      ) : products.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {products.map((product, idx) => (
+            <motion.div 
+              key={product.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.05 }}
+              className="group glass-panel rounded-2xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)] bg-black/40 flex flex-col"
+            >
+              <Link href={`/product/${product.id}`} className="block relative h-48 overflow-hidden bg-white/5">
+                <img 
+                  src={product.image} 
+                  alt={product.name} 
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-white border border-white/10 uppercase tracking-wider">
+                  {product.category}
+                </div>
+                
+                {/* Quick Add Overlay */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
+                  <button 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      addItem({ ...product, quantity: 1 });
+                    }}
+                    className="bg-white text-black px-6 py-2 rounded-full font-bold flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-all hover:bg-gray-200 hover:scale-105"
+                  >
+                    <ShoppingCart className="w-4 h-4" /> Quick Add
+                  </button>
+                </div>
+              </Link>
+              <div className="p-5 flex-1 flex flex-col justify-between relative z-10">
+                <div>
+                  <h3 className="text-white font-semibold line-clamp-1 mb-1 group-hover:text-purple-400 transition-colors">{product.name}</h3>
+                  <div className="flex items-center gap-1 mb-3">
+                    <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                    <span className="text-xs text-gray-400 font-medium">{product.rating}</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between mt-auto">
+                  <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
+                    ${product.price.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            </motion.div>
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {products.map((product, i) => (
-          <Link 
-            key={product.id}
-            href={`/product/${product.id}`}
-            className="group glass-panel hover-glow rounded-2xl overflow-hidden flex flex-col cursor-pointer"
-          >
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="h-full flex flex-col"
-            >
-            <div className={`w-full h-48 relative flex items-center justify-center overflow-hidden`}>
-              <img 
-                src={product.image} 
-                alt={product.name} 
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-              />
-              
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
-                <Button 
-                  className="rounded-full bg-white text-black hover:bg-gray-200"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    addItem({ id: product.id, name: product.name, price: product.price, image: product.image, quantity: 1 });
-                  }}
-                >
-                  <ShoppingCart className="w-4 h-4 mr-2" /> Add to Cart
-                </Button>
-              </div>
-            </div>
-            
-            <div className="p-5 flex flex-col gap-2">
-              <div className="flex justify-between items-start gap-2">
-                <h3 className="font-semibold text-sm text-gray-200 line-clamp-2">{product.name}</h3>
-                <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-md shrink-0">
-                  <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                  <span className="text-xs font-medium">{product.rating}</span>
-                </div>
-              </div>
-              <p className="text-xs text-gray-500">{product.category}</p>
-              <div className="mt-2 text-lg font-bold text-white">
-                ${product.price.toFixed(2)}
-              </div>
-            </div>
-            </motion.div>
-          </Link>
-          ))}
+        <div className="text-center py-24 bg-white/5 rounded-2xl border border-white/10">
+          <p className="text-gray-400 text-lg">No products found in this category.</p>
         </div>
       )}
 
-      {/* Pagination Controls */}
+      {/* Pagination */}
       {!loading && totalPages > 1 && (
-        <div className="flex items-center justify-center gap-4 mt-12 border-t border-white/10 pt-8">
-          <Button 
-            variant="outline" 
-            className="bg-transparent border-white/20 text-white hover:bg-white/10"
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-          >
-            Previous
-          </Button>
-          <span className="text-gray-400 text-sm font-medium">
-            Page {currentPage} of {totalPages}
-          </span>
-          <Button 
-            variant="outline" 
-            className="bg-transparent border-white/20 text-white hover:bg-white/10"
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-          >
-            Next
-          </Button>
+        <div className="mt-12 flex justify-center gap-2">
+          {Array.from({ length: totalPages }).map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentPage(i + 1)}
+              className={`w-10 h-10 rounded-xl flex items-center justify-center font-medium transition-all ${
+                currentPage === i + 1
+                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/25'
+                  : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
         </div>
       )}
     </main>
