@@ -183,16 +183,23 @@ app.post('/api/products/:id/reviews', async (req, res) => {
 // --- STRIPE CHECKOUT API ---
 app.post('/api/checkout', async (req, res) => {
   try {
-    const { items } = req.body;
+    const { items, discountCode } = req.body;
     
-    if (!items || items.length === 0) {
-      return res.status(400).json({ error: "Cart is empty" });
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: "Invalid items" });
+    }
+
+    let discountMultiplier = 1;
+    if (discountCode === 'NEXORA20') {
+      discountMultiplier = 0.8; // 20% off
     }
 
     const line_items = await Promise.all(items.map(async (item: any) => {
       // Validate product price from database to prevent tampering
       const product = await prisma.product.findUnique({ where: { id: item.id } });
       if (!product) throw new Error(`Product ${item.id} not found`);
+
+      const finalPrice = parseFloat(product.basePrice.toString()) * discountMultiplier;
 
       return {
         price_data: {
@@ -201,7 +208,7 @@ app.post('/api/checkout', async (req, res) => {
             name: product.name,
             images: [item.image || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e"],
           },
-          unit_amount: Math.round(parseFloat(product.basePrice.toString()) * 100), // Stripe expects cents
+          unit_amount: Math.round(finalPrice * 100), // Stripe expects cents
         },
         quantity: item.quantity,
       };
