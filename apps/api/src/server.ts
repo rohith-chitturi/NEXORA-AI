@@ -825,6 +825,48 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+// --- USER PROFILE API (Phase 20) ---
+
+app.get('/api/user/profile', async (req, res) => {
+  try {
+    const { customer, address } = await authenticateCustomer(req);
+    res.json({ user: customer, address });
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.put('/api/user/profile', async (req, res) => {
+  try {
+    const { customer, address } = await authenticateCustomer(req);
+    const { firstName, lastName, phone, street, city, state, country, zipCode } = req.body;
+
+    const updatedUser = await prisma.user.update({
+      where: { id: customer.id },
+      data: { firstName, lastName, phone }
+    });
+
+    const updatedAddress = await prisma.address.update({
+      where: { id: address.id },
+      data: {
+        fullName: `${firstName} ${lastName}`,
+        phone,
+        street,
+        city,
+        state,
+        country,
+        zipCode
+      }
+    });
+
+    res.json({ user: updatedUser, address: updatedAddress });
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`NEXORA API running on port ${port}`);
 });
