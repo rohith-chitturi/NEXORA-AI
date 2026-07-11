@@ -42,12 +42,45 @@ export function AIAssistantWidget() {
       
       if (data.intent === 'booking_complete') {
         setMessages(prev => [...prev, { role: 'assistant', text: data.reasoning, orderId: data.orderId, product: data.product, isBooking: true }]);
+      } else if (data.intent === 'booking_confirmation_required') {
+        setMessages(prev => [...prev, { role: 'assistant', text: data.reasoning, product: data.product, isConfirmationRequired: true }]);
       } else {
         const assistantText = `I found that you are looking for: ${data.intent}. ${data.reasoning}.`;
         setMessages(prev => [...prev, { role: 'assistant', text: assistantText, products: data.products }]);
       }
     } catch (err) {
       setMessages(prev => [...prev, { role: 'assistant', text: 'Sorry, the AI Engine is currently offline or unreachable.' }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmPurchase = async (productId: string) => {
+    setLoading(true);
+    setMessages(prev => [...prev, { role: 'user', text: "Yes, please confirm my purchase." }]);
+    
+    try {
+      const response = await fetch(`http://localhost:4000/api/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          mode: 'autonomous',
+          confirm: true,
+          productId,
+          user_id: user?.id || 'anonymous_user'
+        })
+      });
+      const data = await response.json();
+      
+      if (data.intent === 'booking_complete') {
+        setMessages(prev => [...prev, { role: 'assistant', text: data.reasoning, orderId: data.orderId, product: data.product, isBooking: true }]);
+      } else {
+        setMessages(prev => [...prev, { role: 'assistant', text: 'Sorry, I could not complete the booking.' }]);
+      }
+    } catch (err) {
+      setMessages(prev => [...prev, { role: 'assistant', text: 'Sorry, there was an error processing your confirmation.' }]);
     } finally {
       setLoading(false);
     }
@@ -144,6 +177,27 @@ export function AIAssistantWidget() {
                               </div>
                             </div>
                           ))}
+                        </div>
+                      )}
+
+                      {/* Autonomous Booking Confirmation Step */}
+                      {msg.isConfirmationRequired && msg.product && (
+                        <div className="mt-3 bg-black/40 border border-purple-500/30 rounded-xl p-3 flex flex-col gap-3">
+                          <div className="flex gap-3">
+                            <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-white/10">
+                              <img src={msg.product.image} alt={msg.product.name} className="w-full h-full object-cover" />
+                            </div>
+                            <div>
+                              <h4 className="text-xs font-semibold text-white line-clamp-1">{msg.product.name}</h4>
+                              <p className="text-[10px] text-purple-400 font-bold mt-0.5">${msg.product.price.toFixed(2)}</p>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => handleConfirmPurchase(msg.product.id)}
+                            className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white rounded-lg py-2 text-xs font-bold transition-all shadow-lg shadow-purple-500/20"
+                          >
+                            Confirm Purchase
+                          </button>
                         </div>
                       )}
 
