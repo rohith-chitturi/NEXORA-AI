@@ -21,6 +21,23 @@ export function CartDrawer() {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (isDrawerOpen) {
+      document.body.style.overflow = 'hidden';
+      // Fetch wallet balance
+      const token = localStorage.getItem('clerk-db-jwt') || '';
+      fetch('http://localhost:4000/api/user/wallet', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data) setWalletBalance(data.walletBalance);
+      }).catch(() => {});
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+  }, [isDrawerOpen]);
+
   if (!mounted) return null;
 
   const applyPromo = () => {
@@ -56,23 +73,6 @@ export function CartDrawer() {
       alert("Checkout failed. Please try again.");
     }
   };
-  useEffect(() => {
-    if (isDrawerOpen) {
-      document.body.style.overflow = 'hidden';
-      // Fetch wallet balance
-      const token = localStorage.getItem('clerk-db-jwt') || '';
-      fetch('http://localhost:4000/api/user/wallet', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data) setWalletBalance(data.walletBalance);
-      }).catch(() => {});
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-  }, [isDrawerOpen]);
-
   return (
     <AnimatePresence>
       {isDrawerOpen && (
