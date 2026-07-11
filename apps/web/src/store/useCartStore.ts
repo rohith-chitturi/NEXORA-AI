@@ -20,6 +20,7 @@ interface CartState {
   isDrawerOpen: boolean;
   openDrawer: () => void;
   closeDrawer: () => void;
+  setCart: (items: CartItem[]) => void;
 }
 
 export const useCartStore = create<CartState>()(
@@ -68,6 +69,7 @@ export const useCartStore = create<CartState>()(
       isDrawerOpen: false,
       openDrawer: () => set({ isDrawerOpen: true }),
       closeDrawer: () => set({ isDrawerOpen: false }),
+      setCart: (items) => set({ items }),
     }),
     {
       name: 'nexora-cart-storage',
