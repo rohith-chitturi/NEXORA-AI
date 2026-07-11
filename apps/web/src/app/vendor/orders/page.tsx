@@ -1,5 +1,5 @@
-import { Package, Truck, CheckCircle2, Clock } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
+import { OrderStatusSelector } from "@/components/OrderStatusSelector";
 
 export default async function VendorOrdersPage() {
   let orders = [];
@@ -18,23 +18,7 @@ export default async function VendorOrdersPage() {
     console.error("Failed to fetch vendor orders");
   }
 
-  const getStatusIcon = (status: string) => {
-    switch(status) {
-      case 'PENDING': return <Clock className="w-4 h-4 text-yellow-400" />;
-      case 'SHIPPED': return <Truck className="w-4 h-4 text-blue-400" />;
-      case 'DELIVERED': return <CheckCircle2 className="w-4 h-4 text-green-400" />;
-      default: return <Package className="w-4 h-4 text-gray-400" />;
-    }
-  };
 
-  const getStatusBadgeClass = (status: string) => {
-    switch(status) {
-      case 'PENDING': return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
-      case 'SHIPPED': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
-      case 'DELIVERED': return 'bg-green-500/10 text-green-400 border-green-500/20';
-      default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
-    }
-  };
 
   return (
     <div className="space-y-8">
@@ -89,10 +73,7 @@ export default async function VendorOrdersPage() {
                     ${order.totalAmount.toFixed(2)}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadgeClass(order.status)}`}>
-                      {getStatusIcon(order.status)}
-                      {order.status}
-                    </div>
+                    <OrderStatusSelector orderId={order.id} initialStatus={order.status} />
                   </td>
                 </tr>
               ))}
