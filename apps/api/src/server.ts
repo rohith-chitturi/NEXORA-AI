@@ -180,6 +180,48 @@ app.post('/api/products/:id/reviews', async (req, res) => {
 });
 
 
+// --- STRIPE CHECKOUT API ---
+app.post('/api/checkout', async (req, res) => {
+  try {
+    const { items } = req.body;
+    
+    if (!items || items.length === 0) {
+      return res.status(400).json({ error: "Cart is empty" });
+    }
+
+    const line_items = await Promise.all(items.map(async (item: any) => {
+      // Validate product price from database to prevent tampering
+      const product = await prisma.product.findUnique({ where: { id: item.id } });
+      if (!product) throw new Error(`Product ${item.id} not found`);
+
+      return {
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: product.name,
+            images: [item.image || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e"],
+          },
+          unit_amount: Math.round(parseFloat(product.basePrice.toString()) * 100), // Stripe expects cents
+        },
+        quantity: item.quantity,
+      };
+    }));
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items,
+      mode: 'payment',
+      success_url: 'http://localhost:3000/checkout/success',
+      cancel_url: 'http://localhost:3000/checkout/cancel',
+    });
+
+    res.json({ id: session.id, url: session.url });
+  } catch (error: any) {
+    console.error("Error creating checkout session:", error);
+    res.status(500).json({ error: error.message || "Internal server error" });
+  }
+});
+
 // --- VENDOR API ENDPOINTS (Phase 9) ---
 
 // Helper to authenticate user from Clerk
