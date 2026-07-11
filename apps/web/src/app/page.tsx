@@ -69,7 +69,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    setLoading(true);
+    if (currentPage === 1) setLoading(true);
     let url = `http://localhost:4000/api/products?category=${selectedCategory}&page=${currentPage}&limit=8`;
     if (sortBy !== 'default') {
       url += `&sortBy=${sortBy}`;
@@ -77,7 +77,16 @@ export default function Home() {
     fetch(url)
       .then(res => res.json())
       .then(data => {
-        setProducts(data.products || []);
+        if (currentPage === 1) {
+          setProducts(data.products || []);
+        } else {
+          setProducts(prev => {
+            // Filter out duplicates just in case
+            const existingIds = new Set(prev.map(p => p.id));
+            const newProducts = (data.products || []).filter((p: any) => !existingIds.has(p.id));
+            return [...prev, ...newProducts];
+          });
+        }
         setTotalPages(data.totalPages || 1);
         setLoading(false);
       })
@@ -222,7 +231,10 @@ export default function Home() {
           <span className="text-sm text-gray-400">Sort by:</span>
           <select 
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
+            onChange={(e) => {
+              setSortBy(e.target.value);
+              setCurrentPage(1);
+            }}
             className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50 appearance-none min-w-[140px] cursor-pointer"
           >
             <option value="default">Newest First</option>
@@ -252,7 +264,7 @@ export default function Home() {
       </div>
 
       {/* Product Grid */}
-      {loading ? (
+      {loading && currentPage === 1 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
             <div key={i} className="rounded-2xl h-80 animate-pulse bg-white/5 border border-white/5" />
@@ -323,22 +335,19 @@ export default function Home() {
         </div>
       )}
 
-      {/* Pagination */}
-      {!loading && totalPages > 1 && (
-        <div className="mt-12 flex justify-center gap-2">
-          {Array.from({ length: totalPages }).map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentPage(i + 1)}
-              className={`w-10 h-10 rounded-xl flex items-center justify-center font-medium transition-all ${
-                currentPage === i + 1
-                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/25'
-                  : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
+      {/* Load More */}
+      {currentPage < totalPages && (
+        <div className="mt-12 flex justify-center">
+          <button
+            onClick={() => setCurrentPage(prev => prev + 1)}
+            disabled={loading}
+            className="bg-white/5 hover:bg-purple-600 text-white font-medium py-3 px-8 rounded-full border border-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {loading && currentPage > 1 ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white border-r-2 border-r-transparent"></div>
+            ) : null}
+            {loading && currentPage > 1 ? 'Loading...' : 'Load More Products'}
+          </button>
         </div>
       )}
     </main>
