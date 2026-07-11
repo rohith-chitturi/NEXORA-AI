@@ -19,6 +19,7 @@ export default function ProductPage() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(true);
+  const [isSubscription, setIsSubscription] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
@@ -142,12 +143,41 @@ export default function ProductPage() {
           <p className="text-gray-400 text-lg mb-8 leading-relaxed">
             {product.description || "Experience the pinnacle of design and functionality. This premium product is crafted to seamlessly integrate into your workflow and elevate your productivity."}
           </p>
+          
+          {/* Subscribe & Save Toggle */}
+          <div className="mb-8 p-4 rounded-2xl border border-white/10 bg-white/5 flex flex-col gap-4">
+            <label className={`relative flex items-center p-4 rounded-xl cursor-pointer border transition-all ${!isSubscription ? 'bg-purple-500/20 border-purple-500/50' : 'bg-transparent border-white/5 hover:border-white/20'}`}>
+              <input type="radio" name="purchaseType" className="w-5 h-5 text-purple-600 bg-black border-white/20 focus:ring-purple-600 focus:ring-offset-gray-900" checked={!isSubscription} onChange={() => setIsSubscription(false)} />
+              <div className="ml-4 flex-1">
+                <p className="text-white font-semibold">One-time purchase</p>
+                <p className="text-sm text-gray-400">₹{product.price.toFixed(2)}</p>
+              </div>
+            </label>
+            
+            <label className={`relative flex items-center p-4 rounded-xl cursor-pointer border transition-all ${isSubscription ? 'bg-purple-500/20 border-purple-500/50' : 'bg-transparent border-white/5 hover:border-white/20'}`}>
+              <input type="radio" name="purchaseType" className="w-5 h-5 text-purple-600 bg-black border-white/20 focus:ring-purple-600 focus:ring-offset-gray-900" checked={isSubscription} onChange={() => setIsSubscription(true)} />
+              <div className="ml-4 flex-1">
+                <p className="text-white font-semibold flex items-center gap-2">
+                  Subscribe & Save 15% 
+                  <span className="bg-purple-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">Best Value</span>
+                </p>
+                <p className="text-sm text-gray-400">₹{(product.price * 0.85).toFixed(2)} / delivery</p>
+              </div>
+            </label>
+          </div>
 
           <div className="flex gap-4 mb-8">
             <Button 
               size="lg" 
               className="rounded-full bg-white text-black hover:bg-gray-200 flex-1 px-12 py-6 text-lg font-semibold shadow-xl shadow-white/10 transition-all hover:scale-105"
-              onClick={() => addItem({ id: product.id, name: product.name, price: product.price, image: product.image, quantity: 1 })}
+              onClick={() => addItem({ 
+                id: product.id, 
+                name: product.name, 
+                price: isSubscription ? product.price * 0.85 : product.price, 
+                image: product.image, 
+                quantity: 1,
+                isSubscription
+              })}
             >
               <ShoppingCart className="w-5 h-5 mr-3" /> Add to Cart
             </Button>

@@ -7,6 +7,7 @@ export interface CartItem {
   price: number;
   image: string;
   quantity: number;
+  isSubscription?: boolean;
 }
 
 interface CartState {
@@ -30,11 +31,13 @@ export const useCartStore = create<CartState>()(
       
       addItem: (item) => {
         set((state) => {
-          const existingItem = state.items.find((i) => i.id === item.id);
+          const existingItem = state.items.find((i) => i.id === item.id && i.isSubscription === item.isSubscription);
           if (existingItem) {
             return {
               items: state.items.map((i) =>
-                i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+                i.id === item.id && i.isSubscription === item.isSubscription
+                  ? { ...i, quantity: i.quantity + 1 }
+                  : i
               ),
             };
           }

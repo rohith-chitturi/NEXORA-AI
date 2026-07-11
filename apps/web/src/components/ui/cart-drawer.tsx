@@ -128,8 +128,15 @@ export function CartDrawer() {
                       <img src={item.image} alt={item.name} className="w-full h-full object-cover bg-white" />
                     </div>
                     <div className="flex flex-col justify-between flex-1">
-                      <div className="flex justify-between items-start gap-2">
-                        <h3 className="text-sm font-medium text-white line-clamp-2">{item.name}</h3>
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h4 className="text-white font-medium line-clamp-1">{item.name}</h4>
+                          {item.isSubscription && (
+                            <span className="inline-block mt-1 bg-purple-500/20 text-purple-400 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-purple-500/30">
+                              Subscribe & Save
+                            </span>
+                          )}
+                        </div>
                         <button 
                           onClick={() => removeItem(item.id)}
                           className="text-gray-500 hover:text-red-400 transition-colors p-1"
