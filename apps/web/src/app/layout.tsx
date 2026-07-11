@@ -10,6 +10,7 @@ import { ClerkProvider, SignInButton, UserButton } from '@clerk/nextjs'
 import { auth } from '@clerk/nextjs/server'
 import Link from "next/link";
 import { SearchBar } from "@/components/ui/search-bar";
+import { AIAssistant } from "@/components/ui/ai-assistant";
 
 const outfit = Outfit({
   variable: "--font-outfit",
