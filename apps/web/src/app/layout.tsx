@@ -60,13 +60,16 @@ export default async function RootLayout({
               </div>
 
               <div className="flex items-center gap-6 text-sm text-gray-400">
-                <div className="flex items-center justify-center">
+                <div className="flex items-center justify-center gap-4">
                   {!userId ? (
                     <SignInButton mode="modal">
                       <button className="hover:text-white transition-colors text-xs font-medium border border-white/20 rounded-full px-3 py-1.5">Sign In</button>
                     </SignInButton>
                   ) : (
-                    <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: "w-8 h-8" } }} />
+                    <>
+                      <Link href="/orders" className="hover:text-white transition-colors text-xs font-medium hidden sm:block">Orders</Link>
+                      <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: "w-8 h-8" } }} />
+                    </>
                   )}
                 </div>
                 
