@@ -513,6 +513,79 @@ app.post('/api/webhook/stripe', (req, res) => {
   res.json({ received: true });
 });
 
+// --- CART API ENDPOINTS (Phase 14) ---
+
+app.get('/api/cart', async (req, res) => {
+  try {
+    const user = await authenticateCustomer(req);
+    
+    let cart = await prisma.cart.findUnique({
+      where: { userId: user.customer.id },
+      include: {
+        items: {
+          include: {
+            product: {
+              include: { images: true }
+            }
+          }
+        }
+      }
+    });
+
+    if (!cart) {
+      cart = await prisma.cart.create({
+        data: { userId: user.customer.id },
+        include: { items: { include: { product: { include: { images: true } } } } }
+      });
+    }
+
+    const formattedItems = cart.items.map(item => ({
+      id: item.productId,
+      name: item.product.name,
+      price: parseFloat(item.product.basePrice.toString()),
+      quantity: item.quantity,
+      image: item.product.images[0]?.url || '/placeholder.jpg'
+    }));
+
+    res.json(formattedItems);
+  } catch (error) {
+    console.error("Error fetching cart:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.post('/api/cart/sync', async (req, res) => {
+  try {
+    const user = await authenticateCustomer(req);
+    const { items } = req.body; // Array of { id, quantity }
+    
+    // Find or create cart
+    let cart = await prisma.cart.findUnique({ where: { userId: user.customer.id } });
+    if (!cart) {
+      cart = await prisma.cart.create({ data: { userId: user.customer.id } });
+    }
+
+    // Clear existing cart items
+    await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
+
+    // Insert new cart items
+    if (items && items.length > 0) {
+      await prisma.cartItem.createMany({
+        data: items.map((item: any) => ({
+          cartId: cart!.id,
+          productId: item.id,
+          quantity: item.quantity
+        }))
+      });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error syncing cart:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`NEXORA API running on port ${port}`);
 });
