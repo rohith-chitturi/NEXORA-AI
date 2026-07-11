@@ -17,7 +17,8 @@ export default function DiscoverFeedPage() {
       .then(res => res.json())
       .then(data => {
         // Randomize products for the feed
-        const shuffled = data.sort(() => 0.5 - Math.random());
+        const productList = data.products || [];
+        const shuffled = [...productList].sort(() => 0.5 - Math.random());
         setProducts(shuffled);
         setLoading(false);
       });
