@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ShoppingCart, Zap, ShieldCheck, Gem, Tv, Sofa, Shirt, Dumbbell, Home as HomeIcon, LayoutGrid } from 'lucide-react';
+import { ArrowRight, ShoppingCart, Zap, ShieldCheck, Gem, Tv, Sofa, Shirt, Dumbbell, Home as HomeIcon, LayoutGrid, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/store/useCartStore';
 import Link from 'next/link';
