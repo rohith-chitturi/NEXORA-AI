@@ -2,18 +2,21 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ShoppingCart, Star, ShieldCheck, Truck } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Star, ShieldCheck, Truck, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/store/useCartStore';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
+export default function ProductPage() {
   const { id } = useParams();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [reviews, setReviews] = useState<any[]>([]);
   const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(true);
   const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
@@ -24,9 +27,21 @@ import { useParams } from 'next/navigation';
       setProduct(productData);
       setReviews(Array.isArray(reviewsData) ? reviewsData : []);
       setLoading(false);
+      
+      // Fetch wishlist status
+      fetch('http://localhost:4000/api/wishlist')
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setIsWishlisted(data.some(item => item.id === id));
+          }
+          setWishlistLoading(false);
+        })
+        .catch(() => setWishlistLoading(false));
     }).catch(err => {
       console.error("Failed to fetch product data", err);
       setLoading(false);
+      setWishlistLoading(false);
     });
   }, [id]);
 
@@ -126,13 +141,31 @@ import { useParams } from 'next/navigation';
             {product.description || "Experience the pinnacle of design and functionality. This premium product is crafted to seamlessly integrate into your workflow and elevate your productivity."}
           </p>
 
-          <Button 
-            size="lg" 
-            className="rounded-full bg-white text-black hover:bg-gray-200 w-full md:w-auto px-12 py-6 text-lg font-semibold shadow-xl shadow-white/10 transition-all hover:scale-105 mb-8"
-            onClick={() => addItem({ id: product.id, name: product.name, price: product.price, image: product.image, quantity: 1 })}
-          >
-            <ShoppingCart className="w-5 h-5 mr-3" /> Add to Cart
-          </Button>
+          <div className="flex gap-4 mb-8">
+            <Button 
+              size="lg" 
+              className="rounded-full bg-white text-black hover:bg-gray-200 flex-1 px-12 py-6 text-lg font-semibold shadow-xl shadow-white/10 transition-all hover:scale-105"
+              onClick={() => addItem({ id: product.id, name: product.name, price: product.price, image: product.image, quantity: 1 })}
+            >
+              <ShoppingCart className="w-5 h-5 mr-3" /> Add to Cart
+            </Button>
+            <Button 
+              size="lg"
+              variant="outline"
+              disabled={wishlistLoading}
+              className={`rounded-full py-6 px-6 border-white/10 transition-all hover:scale-105 ${isWishlisted ? 'bg-pink-500/10 border-pink-500/50' : 'bg-white/5 hover:bg-white/10'}`}
+              onClick={async () => {
+                try {
+                  const res = await fetch(`http://localhost:4000/api/wishlist/${id}`, { method: 'POST' });
+                  if (res.ok) setIsWishlisted(!isWishlisted);
+                } catch (err) {
+                  console.error(err);
+                }
+              }}
+            >
+              <Heart className={`w-6 h-6 ${isWishlisted ? 'text-pink-500 fill-pink-500' : 'text-gray-300'}`} />
+            </Button>
+          </div>
 
           <div className="grid grid-cols-2 gap-4 border-t border-white/10 pt-8">
             <div className="flex items-center gap-3 text-gray-300">
