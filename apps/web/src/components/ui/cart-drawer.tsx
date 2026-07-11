@@ -10,6 +10,9 @@ import { useRouter } from 'next/navigation';
 export function CartDrawer() {
   const { items, isDrawerOpen, closeDrawer, updateQuantity, removeItem, getTotalPrice, getTotalItems } = useCartStore();
   const [mounted, setMounted] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [discount, setDiscount] = useState(0); // e.g. 0.20 for 20%
+  const [promoMsg, setPromoMsg] = useState({ text: '', isError: false });
   const router = useRouter();
 
   useEffect(() => {
@@ -18,12 +21,27 @@ export function CartDrawer() {
 
   if (!mounted) return null;
 
+  const applyPromo = () => {
+    if (promoCode.toUpperCase() === 'NEXORA20') {
+      setDiscount(0.20);
+      setPromoMsg({ text: '20% discount applied!', isError: false });
+    } else if (promoCode.trim() !== '') {
+      setDiscount(0);
+      setPromoMsg({ text: 'Invalid promo code', isError: true });
+    }
+  };
+
+  const finalTotal = getTotalPrice() * (1 - discount);
+
   const handleCheckout = async () => {
     try {
+      const payload: any = { items };
+      if (discount > 0) payload.discountCode = promoCode.toUpperCase();
+      
       const res = await fetch('http://localhost:4000/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (data.url) {
@@ -148,11 +166,46 @@ export function CartDrawer() {
             {/* Footer */}
             {items.length > 0 && (
               <div className="p-6 border-t border-white/10 bg-black/20 backdrop-blur-lg">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-gray-400">Subtotal</span>
-                  <span className="text-2xl font-bold text-white">${getTotalPrice().toFixed(2)}</span>
+                <div className="mb-6">
+                  <div className="flex gap-2 mb-2">
+                    <input 
+                      type="text" 
+                      placeholder="Promo Code (Try NEXORA20)" 
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                      className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:border-purple-500 focus:outline-none uppercase"
+                    />
+                    <Button onClick={applyPromo} variant="outline" className="border-white/10 text-white rounded-xl">Apply</Button>
+                  </div>
+                  {promoMsg.text && (
+                    <p className={`text-xs font-medium ${promoMsg.isError ? 'text-red-400' : 'text-green-400'}`}>
+                      {promoMsg.text}
+                    </p>
+                  )}
                 </div>
-                <p className="text-xs text-gray-500 mb-6">Shipping and taxes calculated at checkout.</p>
+                
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-gray-400">Subtotal</span>
+                  <span className={`text-xl font-bold ${discount > 0 ? 'text-gray-500 line-through' : 'text-white'}`}>
+                    ${getTotalPrice().toFixed(2)}
+                  </span>
+                </div>
+                
+                {discount > 0 && (
+                  <div className="flex justify-between items-center mb-2 text-green-400">
+                    <span>Discount (20%)</span>
+                    <span>-${(getTotalPrice() * discount).toFixed(2)}</span>
+                  </div>
+                )}
+                
+                {discount > 0 && (
+                  <div className="flex justify-between items-center mb-4 border-t border-white/10 pt-2">
+                    <span className="text-gray-300 font-bold">Total</span>
+                    <span className="text-2xl font-bold text-white">${finalTotal.toFixed(2)}</span>
+                  </div>
+                )}
+                
+                <p className="text-xs text-gray-500 mb-6 mt-2">Shipping and taxes calculated at checkout.</p>
                 
                 <Button 
                   onClick={handleCheckout}
