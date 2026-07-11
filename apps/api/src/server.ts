@@ -65,7 +65,7 @@ app.get('/api/admin/stats', async (req, res) => {
 
 app.get('/api/products', async (req, res) => {
   try {
-    const { category, q, page = '1', limit = '10', sortBy, minPrice, maxPrice } = req.query;
+    const { category, q, page = '1', limit = '10', sortBy, minPrice, maxPrice, isFlashSale } = req.query;
     
     const pageNum = parseInt(page as string, 10);
     const limitNum = parseInt(limit as string, 10);
@@ -78,6 +78,11 @@ app.get('/api/products', async (req, res) => {
           mode: 'insensitive'
         }
       };
+    }
+
+    if (isFlashSale === 'true') {
+      whereClause.isFlashSale = true;
+      whereClause.flashSaleEndTime = { gt: new Date() };
     }
 
     if (q) {
@@ -262,12 +267,37 @@ app.post('/api/products/:id/reviews', async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+// --- WALLET & AFFILIATE API ---
+app.get('/api/user/wallet', async (req, res) => {
+  try {
+    const user = await authenticateUser(req);
+    
+    // Generate referral code if null
+    let referralCode = user.referralCode;
+    if (!referralCode) {
+      referralCode = 'NEX-' + user.id.slice(0, 6).toUpperCase();
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { referralCode }
+      });
+    }
 
+    res.json({
+      walletBalance: parseFloat(user.walletBalance.toString()),
+      referralCode
+    });
+  } catch (error) {
+    console.error("Error fetching wallet:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 // --- STRIPE CHECKOUT API ---
 app.post('/api/checkout', async (req, res) => {
   try {
-    const { items, discountCode } = req.body;
+    const { items, discountCode, useWallet } = req.body;
+    let user = null;
+    try { user = await authenticateUser(req); } catch (e) { /* Guest checkout */ }
     
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: "Invalid items" });
@@ -278,12 +308,37 @@ app.post('/api/checkout', async (req, res) => {
       discountMultiplier = 0.8; // 20% off
     }
 
+    // Calculate subtotal
+    let subtotal = 0;
+    for (const item of items) {
+      const product = await prisma.product.findUnique({ where: { id: item.id } });
+      if (product) {
+        subtotal += parseFloat(product.basePrice.toString()) * discountMultiplier * item.quantity;
+      }
+    }
+    
+    // Apply Wallet Balance if requested
+    let walletDiscount = 0;
+    if (useWallet && user && user.walletBalance.toNumber() > 0) {
+      const balance = user.walletBalance.toNumber();
+      walletDiscount = Math.min(balance, subtotal);
+      
+      // Deduct from DB (simulated lock)
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { walletBalance: { decrement: walletDiscount } }
+      });
+    }
+
+    // Distribute wallet discount proportionally across items (Stripe doesn't allow negative line items easily)
+    // For simplicity, we just use Stripe Coupons in a real app, but here we adjust product unit prices.
+    const discountRatio = subtotal > 0 ? (subtotal - walletDiscount) / subtotal : 1;
+
     const line_items = await Promise.all(items.map(async (item: any) => {
-      // Validate product price from database to prevent tampering
       const product = await prisma.product.findUnique({ where: { id: item.id } });
       if (!product) throw new Error(`Product ${item.id} not found`);
 
-      const finalPrice = parseFloat(product.basePrice.toString()) * discountMultiplier;
+      const finalPrice = parseFloat(product.basePrice.toString()) * discountMultiplier * discountRatio;
 
       return {
         price_data: {
@@ -756,6 +811,68 @@ app.get('/api/vendor/stats', async (req, res) => {
     res.json(stats);
   } catch (error) {
     console.error("Error fetching vendor stats:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// --- VENDOR ANALYTICS API ---
+app.get('/api/vendor/analytics', async (req, res) => {
+  try {
+    const vendorId = await authenticateVendor(req);
+    
+    // Fetch last 30 days of orders for timeseries chart
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const orders = await prisma.order.findMany({
+      where: {
+        vendorId,
+        createdAt: { gte: thirtyDaysAgo }
+      },
+      select: {
+        total: true,
+        createdAt: true,
+      }
+    });
+
+    // Group by day
+    const salesByDay: Record<string, number> = {};
+    
+    // Initialize last 30 days with 0
+    for(let i=29; i>=0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      salesByDay[d.toISOString().split('T')[0]] = 0;
+    }
+
+    orders.forEach(order => {
+      const day = order.createdAt.toISOString().split('T')[0];
+      if (salesByDay[day] !== undefined) {
+        salesByDay[day] += parseFloat(order.total.toString());
+      }
+    });
+
+    const chartData = Object.keys(salesByDay).map(date => ({
+      date,
+      revenue: salesByDay[date]
+    }));
+
+    // Some fake demographic data for the charts
+    const demographics = [
+      { name: '18-24', value: 30 },
+      { name: '25-34', value: 45 },
+      { name: '35-44', value: 15 },
+      { name: '45+', value: 10 },
+    ];
+
+    res.json({
+      chartData,
+      demographics,
+      totalRevenue: chartData.reduce((acc, curr) => acc + curr.revenue, 0)
+    });
+
+  } catch (error) {
+    console.error("Error fetching vendor analytics:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });

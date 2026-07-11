@@ -6,6 +6,8 @@ import { ArrowRight, ShoppingCart, Zap, ShieldCheck, Gem, Tv, Sofa, Shirt, Dumbb
 import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/store/useCartStore';
 import Link from 'next/link';
+import { useAuth } from '@clerk/nextjs';
+import { FlashSaleTimer } from '@/components/ui/flash-sale-timer';
 
 const CATEGORIES = [
   { name: "All", icon: LayoutGrid },
@@ -58,6 +60,8 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState("default");
+  const [flashSales, setFlashSales] = useState<any[]>([]);
+  const { isSignedIn } = useAuth();
   const addItem = useCartStore((state) => state.addItem);
 
   // Auto-advance hero carousel
@@ -104,6 +108,14 @@ export default function Home() {
         if (Array.isArray(data)) {
           setWishlistIds(new Set(data.map(item => item.id)));
         }
+      })
+      .catch(console.error);
+
+    // Fetch Flash Sales
+    fetch('http://localhost:4000/api/products?isFlashSale=true')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.products) setFlashSales(data.products);
       })
       .catch(console.error);
   }, []);
@@ -221,6 +233,76 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Flash Sales Section */}
+      {flashSales.length > 0 && (
+        <div className="mb-16">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold text-white flex items-center gap-3">
+              ⚡ Flash Sales
+            </h2>
+            <FlashSaleTimer endTime={flashSales[0].flashSaleEndTime} />
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {flashSales.map((product, idx) => (
+              <motion.div 
+                key={product.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                className="group glass-panel rounded-2xl overflow-hidden hover:border-red-500/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(239,68,68,0.15)] bg-black/40 flex flex-col relative"
+              >
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 to-orange-500 z-30" />
+                <Link href={`/product/${product.id}`} className="block relative h-48 overflow-hidden bg-white/5">
+                  <img 
+                    src={product.image} 
+                    alt={product.name} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                  <div className="absolute top-3 left-3 bg-red-600 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-white uppercase tracking-wider flex items-center gap-1">
+                    HOT SALE
+                  </div>
+                  
+                  <button 
+                    onClick={(e) => toggleWishlist(e, product.id)}
+                    className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"
+                  >
+                    <Heart className={`w-4 h-4 transition-colors ${wishlistIds.has(product.id) ? 'text-pink-500 fill-pink-500' : 'text-gray-300'}`} />
+                  </button>
+
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        addItem({ ...product, quantity: 1 });
+                      }}
+                      className="bg-white text-black px-6 py-2 rounded-full font-bold flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-all hover:bg-gray-200 hover:scale-105"
+                    >
+                      <ShoppingCart className="w-4 h-4" /> Quick Add
+                    </button>
+                  </div>
+                </Link>
+                <div className="p-5 flex-1 flex flex-col justify-between relative z-10">
+                  <div>
+                    <h3 className="text-white font-semibold line-clamp-1 mb-1 group-hover:text-red-400 transition-colors">{product.name}</h3>
+                    <div className="flex items-center gap-1 mb-3">
+                      <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                      <span className="text-xs text-gray-400 font-medium">{product.rating}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/10">
+                    <div>
+                      <span className="text-xl font-bold text-white drop-shadow-[0_2px_10px_rgba(239,68,68,0.5)]">₹{product.basePrice.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
         <div>

@@ -3,10 +3,11 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, ShoppingCart, Settings, LogOut, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Settings, LogOut, MessageSquare, TrendingUp } from 'lucide-react';
 
 const navItems = [
   { name: 'Dashboard', href: '/vendor', icon: LayoutDashboard },
+  { name: 'Analytics', href: '/vendor/analytics', icon: TrendingUp },
   { name: 'Products', href: '/vendor/products', icon: Package },
   { name: 'Orders', href: '/vendor/orders', icon: ShoppingCart },
   { name: 'Messages', href: '/vendor/messages', icon: MessageSquare },

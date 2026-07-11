@@ -44,10 +44,14 @@ export default async function RootLayout({
           {/* Global Navigation */}
           <nav className="fixed top-0 w-full border-b border-white/5 bg-black/40 backdrop-blur-xl z-40">
             <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <Link href="/" className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-purple-400" />
                 <span className="font-bold text-lg tracking-tight text-white">NEXORA</span>
-              </div>
+              </Link>
+
+              <Link href="/discover" className="ml-8 hidden md:block text-sm font-semibold text-purple-400 hover:text-purple-300 transition-colors bg-purple-500/10 px-4 py-1.5 rounded-full border border-purple-500/20">
+                Discover Feed 🔥
+              </Link>
               
               {/* Search Bar for Traditional E-commerce */}
               <SearchBar />

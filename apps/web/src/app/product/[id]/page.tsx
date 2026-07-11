@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ShoppingCart, Star, ShieldCheck, Truck, Heart } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Star, ShieldCheck, Truck, Heart, Box } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/store/useCartStore';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { VendorChatWidget } from '@/components/ui/vendor-chat';
+import { ARViewer } from '@/components/ui/ar-viewer';
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -20,7 +21,10 @@ export default function ProductPage() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(true);
+  const [quantity, setQuantity] = useState(1);
   const [isSubscription, setIsSubscription] = useState(false);
+  const [activeMediaTab, setActiveMediaTab] = useState<'image'|'3d'>('image');
+  
   const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
@@ -100,18 +104,42 @@ export default function ProductPage() {
       </Link>
 
       <div className="flex flex-col lg:flex-row gap-12">
-        {/* Product Image */}
-        <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="w-full lg:w-1/2 h-[500px] glass-panel rounded-3xl overflow-hidden flex items-center justify-center p-8 bg-gradient-to-tr from-white/5 to-transparent"
-        >
-          <img 
-            src={product.image} 
-            alt={product.name} 
-            className="w-full h-full object-contain filter drop-shadow-2xl" 
-          />
-        </motion.div>
+        {/* Product Media (2D / 3D) */}
+        <div className="w-full lg:w-1/2 flex flex-col gap-4">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="w-full h-[500px] glass-panel rounded-3xl overflow-hidden flex items-center justify-center p-8 bg-gradient-to-tr from-white/5 to-transparent relative"
+          >
+            {activeMediaTab === 'image' ? (
+              <img 
+                src={product.image} 
+                alt={product.name} 
+                className="w-full h-full object-contain filter drop-shadow-2xl" 
+              />
+            ) : (
+              <ARViewer 
+                src={product.arModelUrl || "https://modelviewer.dev/shared-assets/models/Astronaut.glb"} 
+                alt={product.name} 
+              />
+            )}
+          </motion.div>
+          
+          <div className="flex gap-4">
+            <button 
+              onClick={() => setActiveMediaTab('image')}
+              className={`flex-1 py-3 rounded-xl font-bold transition-all ${activeMediaTab === 'image' ? 'bg-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]' : 'bg-white/5 text-gray-400 hover:bg-white/10 border border-white/10'}`}
+            >
+              2D Image
+            </button>
+            <button 
+              onClick={() => setActiveMediaTab('3d')}
+              className={`flex-1 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${activeMediaTab === '3d' ? 'bg-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]' : 'bg-white/5 text-gray-400 hover:bg-white/10 border border-white/10'}`}
+            >
+              <Box className="w-4 h-4" /> 3D AR View
+            </button>
+          </div>
+        </div>
 
         {/* Product Details */}
         <motion.div 

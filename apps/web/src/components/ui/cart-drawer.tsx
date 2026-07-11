@@ -13,6 +13,8 @@ export function CartDrawer() {
   const [promoCode, setPromoCode] = useState('');
   const [discount, setDiscount] = useState(0); // e.g. 0.20 for 20%
   const [promoMsg, setPromoMsg] = useState({ text: '', isError: false });
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [useWallet, setUseWallet] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -35,13 +37,12 @@ export function CartDrawer() {
 
   const handleCheckout = async () => {
     try {
-      const payload: any = { items };
-      if (discount > 0) payload.discountCode = promoCode.toUpperCase();
-      
       const res = await fetch('http://localhost:4000/api/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ items, discountCode: discount > 0 ? promoCode.toUpperCase() : undefined, useWallet }),
       });
       const data = await res.json();
       if (data.url) {
@@ -55,6 +56,22 @@ export function CartDrawer() {
       alert("Checkout failed. Please try again.");
     }
   };
+  useEffect(() => {
+    if (isDrawerOpen) {
+      document.body.style.overflow = 'hidden';
+      // Fetch wallet balance
+      const token = localStorage.getItem('clerk-db-jwt') || '';
+      fetch('http://localhost:4000/api/user/wallet', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data) setWalletBalance(data.walletBalance);
+      }).catch(() => {});
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+  }, [isDrawerOpen]);
 
   return (
     <AnimatePresence>
@@ -209,6 +226,26 @@ export function CartDrawer() {
                   <div className="flex justify-between items-center mb-4 border-t border-white/10 pt-2">
                     <span className="text-gray-300 font-bold">Total</span>
                     <span className="text-2xl font-bold text-white">₹{finalTotal.toFixed(2)}</span>
+                  </div>
+                )}
+
+                {walletBalance > 0 && (
+                  <div className="flex items-center justify-between mb-4 bg-purple-500/10 p-3 rounded-lg border border-purple-500/20">
+                    <div>
+                      <p className="text-sm text-purple-300 font-bold">NEXORA Cash</p>
+                      <p className="text-xs text-purple-400/70">Available: ₹{walletBalance.toFixed(2)}</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" className="sr-only peer" checked={useWallet} onChange={() => setUseWallet(!useWallet)} />
+                      <div className="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-500"></div>
+                    </label>
+                  </div>
+                )}
+                
+                {useWallet && walletBalance > 0 && (
+                  <div className="flex justify-between items-center mb-2 text-purple-400">
+                    <span>Wallet Applied</span>
+                    <span>-₹{Math.min(walletBalance, finalTotal).toFixed(2)}</span>
                   </div>
                 )}
                 
