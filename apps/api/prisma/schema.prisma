@@ -53,6 +53,7 @@ model User {
   wishlist       Wishlist[]
   cart           Cart?
   chatHistory    ChatHistory[]
+  messages       Message[]
   
   // If user is a vendor
   vendorProfile  Vendor?
@@ -71,6 +72,7 @@ model Vendor {
   updatedAt     DateTime  @updatedAt
 
   products      Product[]
+  messages      Message[]
 }
 
 model Category {
@@ -262,5 +264,22 @@ model ChatHistory {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   agentType   String   // 'SHOPPING', 'COMPARISON', 'DEAL_FINDER', etc.
   message     String   // Usually a serialized JSON containing prompt/response context
+  createdAt   DateTime @default(now())
+}
+
+model Message {
+  id          String   @id @default(uuid())
+  content     String
+  
+  senderId    String
+  senderType  Role     // CUSTOMER or VENDOR
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  vendorId    String
+  vendor      Vendor   @relation(fields: [vendorId], references: [id])
+  
+  isRead      Boolean  @default(false)
   createdAt   DateTime @default(now())
 }
