@@ -1065,6 +1065,52 @@ app.get('/api/vendor/store/:vendorId', async (req, res) => {
   }
 });
 
+app.post('/api/vendor/products', async (req, res) => {
+  try {
+    const vendor = await authenticateVendor(req);
+    const { name, description, basePrice, stock, category, imageUrl } = req.body;
+
+    if (!name || !basePrice || !category) {
+      return res.status(400).json({ error: "Name, basePrice, and category are required." });
+    }
+
+    // Upsert Category
+    const dbCategory = await prisma.category.upsert({
+      where: { name: category },
+      update: {},
+      create: {
+        name: category,
+        description: `${category} category`
+      }
+    });
+
+    // Create Product
+    const newProduct = await prisma.product.create({
+      data: {
+        vendorId: vendor.id,
+        categoryId: dbCategory.id,
+        name,
+        description: description || '',
+        basePrice: parseFloat(basePrice),
+        stock: parseInt(stock, 10) || 0,
+        isActive: true,
+        attributes: {},
+        images: {
+          create: {
+            url: imageUrl || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e",
+            isDefault: true
+          }
+        }
+      }
+    });
+
+    res.json(newProduct);
+  } catch (error) {
+    console.error("Error creating vendor product:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`NEXORA API running on port ${port}`);
 });
