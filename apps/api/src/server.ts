@@ -277,6 +277,71 @@ app.get('/api/user/orders', async (req, res) => {
   }
 });
 
+// --- PRODUCT REVIEWS API ---
+app.get('/api/products/:id/reviews', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const reviews = await prisma.productReview.findMany({
+      where: { productId: id },
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            avatarUrl: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(reviews);
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.post('/api/products/:id/reviews', async (req, res) => {
+  try {
+    const user = await authenticateUser(req);
+    const { id } = req.params;
+    const { rating, comment, title } = req.body;
+
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({ error: "Rating must be between 1 and 5" });
+    }
+
+    // Check if product exists
+    const product = await prisma.product.findUnique({ where: { id } });
+    if (!product) return res.status(404).json({ error: "Product not found" });
+
+    // Create review
+    const review = await prisma.productReview.create({
+      data: {
+        userId: user.id,
+        productId: id,
+        rating,
+        comment,
+        title
+      },
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            avatarUrl: true
+          }
+        }
+      }
+    });
+
+    res.status(201).json(review);
+  } catch (error) {
+    console.error("Error creating review:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // --- WISHLIST API ---
 app.get('/api/wishlist', async (req, res) => {
   try {
