@@ -400,6 +400,42 @@ app.post('/api/vendor/products', async (req, res) => {
   }
 });
 
+app.put('/api/vendor/orders/:id/status', async (req, res) => {
+  try {
+    const vendor = await authenticateVendor(req);
+    const orderId = req.params.id;
+    const { status } = req.body;
+    
+    // Verify the order has items belonging to this vendor
+    const orderItems = await prisma.orderItem.findMany({
+      where: {
+        orderId: orderId,
+        product: { vendorId: vendor.id }
+      }
+    });
+    
+    if (orderItems.length === 0) {
+      return res.status(403).json({ error: "Order does not belong to this vendor" });
+    }
+    
+    // Validate status against enum
+    const validStatuses = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: "Invalid status" });
+    }
+    
+    const updatedOrder = await prisma.order.update({
+      where: { id: orderId },
+      data: { status }
+    });
+    
+    res.json(updatedOrder);
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // --- STRIPE API ENDPOINTS (Phase 10) ---
 
 app.post('/api/checkout/session', async (req, res) => {
