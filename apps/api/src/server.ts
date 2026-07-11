@@ -311,13 +311,51 @@ app.get('/api/vendor/stats', async (req, res) => {
       } : null;
     }).filter(Boolean);
 
+    // Calculate revenueData for charts (Last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    sevenDaysAgo.setHours(0,0,0,0);
+    
+    const recentOrdersAll = await prisma.order.findMany({
+      where: { 
+        id: { in: orderIds },
+        createdAt: { gte: sevenDaysAgo }
+      },
+      select: { createdAt: true, items: true }
+    });
+
+    const revenueDataMap: Record<string, number> = {};
+    for(let i = 0; i < 7; i++) {
+      const d = new Date(sevenDaysAgo);
+      d.setDate(d.getDate() + i);
+      const dateStr = d.toLocaleDateString('en-US', { weekday: 'short' });
+      revenueDataMap[dateStr] = 0;
+    }
+
+    recentOrdersAll.forEach(order => {
+      const dateStr = order.createdAt.toLocaleDateString('en-US', { weekday: 'short' });
+      const orderRevenue = order.items
+        .filter(item => vendorProductIds.includes(item.productId))
+        .reduce((sum, item) => sum + (parseFloat(item.unitPrice.toString()) * item.quantity), 0);
+        
+      if (revenueDataMap[dateStr] !== undefined) {
+        revenueDataMap[dateStr] += orderRevenue;
+      }
+    });
+
+    const revenueData = Object.keys(revenueDataMap).map(name => ({
+      name,
+      total: revenueDataMap[name]
+    }));
+
     const stats = {
       totalRevenue: totalRevenue || 0,
       activeProducts,
       pendingOrders: pendingOrdersCount,
       storeRating: vendor.rating,
       recentOrders,
-      topProducts
+      topProducts,
+      revenueData
     };
     
     res.json(stats);
