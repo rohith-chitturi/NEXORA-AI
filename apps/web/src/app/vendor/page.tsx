@@ -9,7 +9,8 @@ export default async function VendorDashboard() {
     pendingOrders: 0,
     storeRating: 0,
     recentOrders: [],
-    topProducts: []
+    topProducts: [],
+    revenueData: [] as any[]
   };
 
   try {
