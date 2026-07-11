@@ -743,20 +743,33 @@ app.post('/api/chat', async (req, res) => {
     let products = [];
     
     if (words.length > 0) {
-      // Build a basic AND query for the words to increase precision
-      products = await prisma.product.findMany({
-        where: {
-          AND: words.map((word: string) => ({
-            OR: [
-              { name: { contains: word, mode: 'insensitive' } },
-              { description: { contains: word, mode: 'insensitive' } },
-              { tags: { has: word } }
-            ]
-          }))
-        },
-        include: { images: true },
-        take: 3
+      // Advanced mock NLP: Fetch all products and score them
+      const allProducts = await prisma.product.findMany({
+        include: { images: true }
       });
+
+      const scoredProducts = allProducts.map(p => {
+        let score = 0;
+        const nameLower = p.name.toLowerCase();
+        const descLower = p.description.toLowerCase();
+        const tags = p.tags.map(t => t.toLowerCase());
+
+        words.forEach((word: string) => {
+          if (nameLower.includes(word)) score += 3;
+          if (tags.some(t => t.includes(word))) score += 2;
+          if (descLower.includes(word)) score += 1;
+        });
+
+        return { product: p, score };
+      });
+
+      // Sort by score descending and take top 3 with score > 0
+      products = scoredProducts
+        .filter(sp => sp.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3)
+        .map(sp => sp.product);
+
       intent = `search for "${words.join(' ')}"`;
     } else {
       // Fallback: Return top products
