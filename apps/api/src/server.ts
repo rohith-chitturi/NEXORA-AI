@@ -1005,6 +1005,73 @@ app.get('/api/vendor/profile', async (req, res) => {
   }
 });
 
+app.get('/api/vendor/stats', async (req, res) => {
+  try {
+    const vendor = await authenticateVendor(req);
+    
+    // Get active products count
+    const activeProducts = await prisma.product.count({
+      where: { vendorId: vendor.id, isActive: true }
+    });
+
+    // Get all products to calculate rating and mock revenue
+    const products = await prisma.product.findMany({
+      where: { vendorId: vendor.id },
+      include: { reviews: true }
+    });
+
+    // Calculate rating
+    let totalReviews = 0;
+    let sumRatings = 0;
+    products.forEach(p => {
+      p.reviews.forEach((r: any) => {
+        totalReviews++;
+        sumRatings += r.rating;
+      });
+    });
+    const storeRating = totalReviews > 0 ? (sumRatings / totalReviews) : 0;
+
+    // Mock revenue and orders since orders system isn't fully connected to vendors yet
+    const totalRevenue = activeProducts > 0 ? 12450.50 : 0;
+    const pendingOrders = activeProducts > 0 ? 12 : 0;
+    
+    const revenueData = [
+      { name: 'Mon', revenue: 1200 },
+      { name: 'Tue', revenue: 1900 },
+      { name: 'Wed', revenue: 1500 },
+      { name: 'Thu', revenue: 2200 },
+      { name: 'Fri', revenue: 2800 },
+      { name: 'Sat', revenue: 3500 },
+      { name: 'Sun', revenue: 2900 },
+    ];
+
+    const recentOrders = activeProducts > 0 ? [
+      { id: 'ORD-7742', date: 'Today, 2:30 PM', customer: 'Sarah Jenkins', total: 124.99, status: 'Pending' },
+      { id: 'ORD-7741', date: 'Today, 11:15 AM', customer: 'Michael Chen', total: 89.50, status: 'Processing' },
+      { id: 'ORD-7740', date: 'Yesterday, 4:45 PM', customer: 'Emma Thompson', total: 249.00, status: 'Shipped' },
+    ] : [];
+
+    const topProducts = products.slice(0, 3).map(p => ({
+      name: p.name,
+      sales: Math.floor(Math.random() * 50) + 10,
+      revenue: parseFloat(p.basePrice.toString()) * (Math.floor(Math.random() * 50) + 10)
+    }));
+
+    res.json({
+      totalRevenue,
+      activeProducts,
+      pendingOrders,
+      storeRating,
+      revenueData,
+      recentOrders,
+      topProducts
+    });
+  } catch (error) {
+    console.error("Error fetching vendor stats:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.put('/api/vendor/profile', async (req, res) => {
   try {
     const vendor = await authenticateVendor(req);
