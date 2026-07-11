@@ -10,6 +10,7 @@ import { useCartStore } from '@/store/useCartStore';
 export function AIAssistantWidget() {
   const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
+  const [mode, setMode] = useState<'assistant' | 'autonomous'>('assistant');
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<any[]>([
     { role: 'assistant', text: 'Hello! I am your NEXORA AI. Need help finding a product?' }
@@ -33,13 +34,18 @@ export function AIAssistantWidget() {
         },
         body: JSON.stringify({
           query: userMsg,
+          mode,
           user_id: user?.id || 'anonymous_user'
         })
       });
       const data = await response.json();
       
-      const assistantText = `I found that you are looking for: ${data.intent}. ${data.reasoning}.`;
-      setMessages(prev => [...prev, { role: 'assistant', text: assistantText, products: data.products }]);
+      if (data.intent === 'booking_complete') {
+        setMessages(prev => [...prev, { role: 'assistant', text: data.reasoning, orderId: data.orderId, product: data.product, isBooking: true }]);
+      } else {
+        const assistantText = `I found that you are looking for: ${data.intent}. ${data.reasoning}.`;
+        setMessages(prev => [...prev, { role: 'assistant', text: assistantText, products: data.products }]);
+      }
     } catch (err) {
       setMessages(prev => [...prev, { role: 'assistant', text: 'Sorry, the AI Engine is currently offline or unreachable.' }]);
     } finally {
@@ -90,6 +96,22 @@ export function AIAssistantWidget() {
                 </button>
               </div>
               
+              {/* Mode Toggle */}
+              <div className="px-4 py-2 bg-black/40 border-b border-white/5 flex gap-2">
+                <button 
+                  onClick={() => setMode('assistant')}
+                  className={`flex-1 text-[10px] font-medium py-1.5 rounded-full transition-colors ${mode === 'assistant' ? 'bg-white text-black' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                >
+                  Assistant
+                </button>
+                <button 
+                  onClick={() => setMode('autonomous')}
+                  className={`flex-1 text-[10px] font-medium py-1.5 rounded-full transition-colors flex items-center justify-center gap-1 ${mode === 'autonomous' ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg shadow-purple-500/20' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                >
+                  <Sparkles className="w-3 h-3" /> Auto-Buy
+                </button>
+              </div>
+
               {/* Messages Area */}
               <div className="p-4 h-[400px] flex flex-col gap-4 overflow-y-auto custom-scrollbar">
                 {messages.map((msg, i) => (
@@ -122,6 +144,28 @@ export function AIAssistantWidget() {
                               </div>
                             </div>
                           ))}
+                        </div>
+                      )}
+
+                      {/* Autonomous Booking Receipt */}
+                      {msg.isBooking && msg.product && (
+                        <div className="mt-3 bg-gradient-to-br from-green-500/10 to-blue-500/10 border border-green-500/30 rounded-xl p-3 flex flex-col gap-3 relative overflow-hidden">
+                          <div className="absolute top-0 right-0 p-2 opacity-10">
+                            <Sparkles className="w-16 h-16" />
+                          </div>
+                          <div className="flex items-center gap-2 text-green-400">
+                            <div className="w-4 h-4 rounded-full bg-green-500/20 flex items-center justify-center">✓</div>
+                            <span className="text-xs font-bold uppercase tracking-wider">Order Confirmed</span>
+                          </div>
+                          <div className="flex gap-3 relative z-10">
+                            <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-white/10">
+                              <img src={msg.product.image} alt={msg.product.name} className="w-full h-full object-cover" />
+                            </div>
+                            <div>
+                              <h4 className="text-xs font-semibold text-white line-clamp-1">{msg.product.name}</h4>
+                              <p className="text-[10px] text-gray-400 mt-0.5">Order {msg.orderId ? `#ORD-${msg.orderId.split('-')[0]}` : 'Placed'}</p>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
