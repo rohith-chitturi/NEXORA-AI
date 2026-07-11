@@ -358,6 +358,11 @@ app.post('/api/checkout', async (req, res) => {
       return res.json({ url: 'http://localhost:3000/checkout/success' });
     }
 
+    // Bypass real Stripe API if we are using the mock key to prevent invalid key errors in development
+    if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY === 'sk_test_51MockStripeKeyForNexora12345') {
+      return res.json({ id: 'mock_session_123', url: 'http://localhost:3000/checkout/success' });
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items,
