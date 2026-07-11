@@ -22,9 +22,15 @@ type Order = {
 export default function OrderHistoryPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const { getToken } = useAuth();
+  const [trackingOrder, setTrackingOrder] = useState<Order | null>(null);
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/user/orders')
+    fetch('http://localhost:4000/api/user/orders', {
+      headers: {
+        Authorization: `Bearer ${getToken()}`
+      }
+    })
       .then(res => res.json())
       .then(data => {
         setOrders(data);
@@ -139,7 +145,10 @@ export default function OrderHistoryPage() {
                 {order.trackingNumber && (
                   <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
                     <p className="text-sm text-gray-400">Tracking Number: <span className="text-white font-mono bg-white/5 px-2 py-1 rounded">{order.trackingNumber}</span></p>
-                    <button className="text-sm text-purple-400 font-semibold hover:text-purple-300 flex items-center gap-1 transition-colors">
+                    <button 
+                      onClick={() => setTrackingOrder(order)}
+                      className="text-sm text-purple-400 font-semibold hover:text-purple-300 flex items-center gap-1 transition-colors"
+                    >
                       Track Package <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
@@ -149,6 +158,12 @@ export default function OrderHistoryPage() {
           ))}
         </div>
       )}
+      
+      <TrackingModal 
+        isOpen={!!trackingOrder} 
+        onClose={() => setTrackingOrder(null)} 
+        order={trackingOrder} 
+      />
     </main>
   );
 }
