@@ -635,6 +635,47 @@ app.post('/api/cart/sync', async (req, res) => {
   }
 });
 
+// --- CUSTOMER ORDERS API (Phase 16) ---
+
+app.get('/api/orders', async (req, res) => {
+  try {
+    const { customer } = await authenticateCustomer(req);
+    
+    const orders = await prisma.order.findMany({
+      where: { userId: customer.id },
+      include: {
+        items: {
+          include: {
+            product: {
+              include: { images: true }
+            }
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const formattedOrders = orders.map(order => ({
+      id: order.id,
+      status: order.status,
+      date: order.createdAt,
+      totalAmount: parseFloat(order.totalAmount.toString()),
+      items: order.items.map(item => ({
+        id: item.productId,
+        name: item.product.name,
+        price: parseFloat(item.unitPrice.toString()),
+        quantity: item.quantity,
+        image: item.product.images[0]?.url || '/placeholder.jpg'
+      }))
+    }));
+
+    res.json(formattedOrders);
+  } catch (error) {
+    console.error("Error fetching customer orders:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`NEXORA API running on port ${port}`);
 });
