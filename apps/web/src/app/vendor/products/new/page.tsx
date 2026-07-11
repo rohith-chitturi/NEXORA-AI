@@ -20,11 +20,22 @@ export default function AddProductPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Dummy submit logic for the UI to satisfy the feature requirements
-    setTimeout(() => {
-      setLoading(false);
+    
+    try {
+      const res = await fetch('http://localhost:4000/api/vendor/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      
+      if (!res.ok) throw new Error("Failed to add product");
+      
       router.push('/vendor');
-    }, 1000);
+    } catch (error) {
+      console.error(error);
+      alert("Error adding product. Check console.");
+      setLoading(false);
+    }
   };
 
   return (
