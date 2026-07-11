@@ -135,7 +135,7 @@ export default function VendorOrdersPage() {
                       </div>
                     </td>
                     <td className="p-4">
-                      <span className="text-white font-medium">${order.total.toFixed(2)}</span>
+                      <span className="text-white font-medium">₹{order.total.toFixed(2)}</span>
                     </td>
                     <td className="p-4">
                       <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${getStatusColor(order.status)}`}>

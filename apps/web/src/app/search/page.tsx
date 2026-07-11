@@ -98,7 +98,7 @@ function SearchResults() {
                 </div>
                 <div className="flex items-center justify-between mt-auto">
                   <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
-                    ${product.price.toFixed(2)}
+                    ₹{product.price.toFixed(2)}
                   </span>
                 </div>
               </div>

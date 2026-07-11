@@ -97,7 +97,7 @@ export default function OrderHistoryPage() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Total</p>
-                    <p className="text-sm text-gray-200">${order.totalAmount.toFixed(2)}</p>
+                    <p className="text-sm text-gray-200">₹{order.totalAmount.toFixed(2)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Order #</p>
@@ -124,7 +124,7 @@ export default function OrderHistoryPage() {
                         <div>
                           <h3 className="text-lg font-semibold text-white mb-1 hover:text-purple-400 transition-colors cursor-pointer">{item.product.name}</h3>
                           <p className="text-gray-400 text-sm mb-2">Qty: {item.quantity}</p>
-                          <div className="text-purple-400 font-bold">${item.unitPrice.toFixed(2)}</div>
+                          <div className="text-purple-400 font-bold">₹{item.unitPrice.toFixed(2)}</div>
                         </div>
                         <div className="flex gap-3">
                           <button className="px-6 py-2 rounded-full bg-white/5 border border-white/10 text-white text-sm font-semibold hover:bg-white/10 transition-colors">

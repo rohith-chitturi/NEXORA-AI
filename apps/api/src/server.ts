@@ -248,7 +248,7 @@ app.post('/api/checkout', async (req, res) => {
 
       return {
         price_data: {
-          currency: 'usd',
+          currency: 'inr',
           product_data: {
             name: product.name,
             images: [item.image || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e"],
@@ -891,7 +891,7 @@ app.post('/api/checkout/session', async (req, res) => {
     
     const line_items = items.map((item: any) => ({
       price_data: {
-        currency: 'usd',
+        currency: 'inr',
         product_data: {
           name: item.name,
           images: item.image ? [item.image] : undefined,

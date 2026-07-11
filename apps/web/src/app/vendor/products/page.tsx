@@ -71,7 +71,7 @@ export default async function VendorProducts() {
                     <span className="line-clamp-1">{product.name}</span>
                   </td>
                   <td className="px-6 py-4">{product.category}</td>
-                  <td className="px-6 py-4 text-white">${product.price.toFixed(2)}</td>
+                  <td className="px-6 py-4 text-white">₹{product.price.toFixed(2)}</td>
                   <td className="px-6 py-4">{product.stock}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${

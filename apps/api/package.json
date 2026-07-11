@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "@clerk/express": "^2.1.39",
+    "@google/generative-ai": "^0.24.1",
     "@prisma/client": "5.22.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",

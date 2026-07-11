@@ -132,7 +132,7 @@ export default function ProductPage() {
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">{product.name}</h1>
           
           <div className="flex items-center gap-4 mb-6">
-            <div className="text-3xl font-bold text-white">${product.price.toFixed(2)}</div>
+            <div className="text-3xl font-bold text-white">₹{product.price.toFixed(2)}</div>
             <div className="flex items-center gap-1 bg-white/5 px-3 py-1 rounded-full border border-white/10">
               <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
               <span className="text-sm font-medium text-gray-200">{product.rating}</span>
@@ -241,7 +241,7 @@ export default function ProductPage() {
                     <h3 className="text-white font-semibold line-clamp-1 mb-1 group-hover:text-purple-400 transition-colors">{rp.name}</h3>
                   </div>
                   <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/10">
-                    <span className="text-xl font-bold text-white">${rp.price.toFixed(2)}</span>
+                    <span className="text-xl font-bold text-white">₹{rp.price.toFixed(2)}</span>
                     <button 
                       onClick={() => addItem({ id: rp.id, name: rp.name, price: rp.price, image: rp.image, quantity: 1 })}
                       className="w-10 h-10 rounded-full bg-white/5 hover:bg-purple-600 flex items-center justify-center transition-colors text-white border border-white/10 hover:border-purple-500"

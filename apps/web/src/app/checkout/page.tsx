@@ -122,7 +122,7 @@ export default function CheckoutPage() {
               <Button type="submit" disabled={isProcessing} className="w-full py-6 text-lg font-semibold rounded-2xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-xl shadow-purple-500/20 flex items-center justify-center gap-2">
                 {isProcessing ? 'Redirecting to Stripe...' : (
                   <>
-                    <ShieldCheck className="w-5 h-5" /> Pay with Stripe • ${total.toFixed(2)}
+                    <ShieldCheck className="w-5 h-5" /> Pay with Stripe • ₹{total.toFixed(2)}
                   </>
                 )}
               </Button>
@@ -151,7 +151,7 @@ export default function CheckoutPage() {
                     <span className="text-xs text-gray-400">Qty: {item.quantity}</span>
                   </div>
                   <div className="flex items-center justify-end font-medium text-white">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    ₹{(item.price * item.quantity).toFixed(2)}
                   </div>
                 </div>
               ))}
@@ -160,19 +160,19 @@ export default function CheckoutPage() {
             <div className="border-t border-white/10 pt-4 space-y-3">
               <div className="flex justify-between text-sm text-gray-400">
                 <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>₹{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm text-gray-400">
                 <span>Shipping</span>
-                <span>${shipping.toFixed(2)}</span>
+                <span>₹{shipping.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm text-gray-400">
                 <span>Estimated Tax</span>
-                <span>${tax.toFixed(2)}</span>
+                <span>₹{tax.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-lg font-bold text-white pt-4 border-t border-white/10">
                 <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+                <span>₹{total.toFixed(2)}</span>
               </div>
             </div>
           </div>

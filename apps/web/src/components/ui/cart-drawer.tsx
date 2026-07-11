@@ -138,7 +138,7 @@ export function CartDrawer() {
                         </button>
                       </div>
                       <div className="flex justify-between items-center mt-2">
-                        <span className="text-purple-400 font-semibold">${item.price.toFixed(2)}</span>
+                        <span className="text-purple-400 font-semibold">₹{item.price.toFixed(2)}</span>
                         
                         <div className="flex items-center gap-3 bg-black/40 rounded-full px-2 py-1 border border-white/10">
                           <button 
@@ -187,21 +187,21 @@ export function CartDrawer() {
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-gray-400">Subtotal</span>
                   <span className={`text-xl font-bold ${discount > 0 ? 'text-gray-500 line-through' : 'text-white'}`}>
-                    ${getTotalPrice().toFixed(2)}
+                    ₹{getTotalPrice().toFixed(2)}
                   </span>
                 </div>
                 
                 {discount > 0 && (
                   <div className="flex justify-between items-center mb-2 text-green-400">
                     <span>Discount (20%)</span>
-                    <span>-${(getTotalPrice() * discount).toFixed(2)}</span>
+                    <span>-₹{(getTotalPrice() * discount).toFixed(2)}</span>
                   </div>
                 )}
                 
                 {discount > 0 && (
                   <div className="flex justify-between items-center mb-4 border-t border-white/10 pt-2">
                     <span className="text-gray-300 font-bold">Total</span>
-                    <span className="text-2xl font-bold text-white">${finalTotal.toFixed(2)}</span>
+                    <span className="text-2xl font-bold text-white">₹{finalTotal.toFixed(2)}</span>
                   </div>
                 )}
                 

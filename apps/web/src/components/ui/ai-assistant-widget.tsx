@@ -166,7 +166,7 @@ export function AIAssistantWidget() {
                               <div className="flex flex-col justify-between flex-1 min-w-0">
                                 <div>
                                   <h4 className="text-xs font-semibold text-white truncate">{product.name}</h4>
-                                  <p className="text-[10px] text-purple-400 font-bold mt-0.5">${product.price.toFixed(2)}</p>
+                                  <p className="text-[10px] text-purple-400 font-bold mt-0.5">₹{product.price.toFixed(2)}</p>
                                 </div>
                                 <button 
                                   onClick={() => addItem({ ...product, quantity: 1 })}
@@ -189,7 +189,7 @@ export function AIAssistantWidget() {
                             </div>
                             <div>
                               <h4 className="text-xs font-semibold text-white line-clamp-1">{msg.product.name}</h4>
-                              <p className="text-[10px] text-purple-400 font-bold mt-0.5">${msg.product.price.toFixed(2)}</p>
+                              <p className="text-[10px] text-purple-400 font-bold mt-0.5">₹{msg.product.price.toFixed(2)}</p>
                             </div>
                           </div>
                           <button 

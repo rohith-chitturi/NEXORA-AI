@@ -112,7 +112,7 @@ export default async function VendorDashboard() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-white font-semibold">${order.totalAmount.toFixed(2)}</div>
+                  <div className="text-white font-semibold">₹{order.totalAmount.toFixed(2)}</div>
                   <div className={`text-xs mt-1 ${order.status === 'PENDING' ? 'text-yellow-400' : 'text-purple-400'}`}>
                     {order.status}
                   </div>
